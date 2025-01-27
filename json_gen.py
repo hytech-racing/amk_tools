@@ -6,7 +6,6 @@ def get_least_sig_val(val):
 def get_most_sig_val(val):
     return (val >> 8) & 0xFF
 
-
 def read_word(line):
     if(line == '0000'):
         return 0
@@ -20,7 +19,7 @@ def parse_message_signal(cur_can_desc_file, leftover_byte = None):
         res_byte_and_index_word_lsb = int(cur_can_desc_file.readline(), 16)
         index_word_msb_and_length_byte = int(cur_can_desc_file.readline(), 16)
         
-        sig_dict["index"] =   get_least_sig_val(index_word_msb_and_length_byte) | get_most_sig_val(res_byte_and_index_word_lsb)
+        sig_dict["index"] =   (get_least_sig_val(index_word_msb_and_length_byte) << 8) | get_most_sig_val(res_byte_and_index_word_lsb)
         sig_dict["bit_length"] = get_most_sig_val(index_word_msb_and_length_byte)
         
         test = cur_can_desc_file.readline()
@@ -140,8 +139,8 @@ def parse_recv_message(cur_can_desc_file, leftover_byte_arg = None):
         
         return send_msg, leftover_byte
 
-CAN_desc = open("CAN.txt", "r")
-
+CAN_desc = open("CAN_write.txt", "r")
+# CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
 
 total_send_and_message_config_word = int(CAN_desc.readline(), 16)
 
@@ -185,7 +184,7 @@ else:
 if(leftover_byte is not None):
 
     transmission_rate_msb_and_end_byte = int(CAN_desc.readline(), 16)
-    description_json["transmission_rate"] = leftover_byte| get_least_sig_val(transmission_rate_msb_and_end_byte)
+    description_json["transmission_rate"] =  (get_least_sig_val(transmission_rate_msb_and_end_byte) << 8) | (leftover_byte)
 else:
     description_json["transmission_rate"] = int(CAN_desc.readline(), 16)
 
