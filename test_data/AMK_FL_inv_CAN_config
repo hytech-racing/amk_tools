@@ -1,0 +1,115 @@
+Mode message configuration, 01, 1
+Total of send messages, 03, 1
+CAN Identifier send messages, 1, 00B0, 2
+Cycle / delay time in ms, 0005, 2
+Data length in byte, 08, 1
+Attr, 00, 1
+Total Sigs, 04, 1
+sig type, 02, 1
+res, 00, 1
+index, 0003, 2
+length in bit, 10, 1
+start bit, 00, 1
+attr send msg, 00, 1
+sig type, 02, 1
+res, 00, 1
+index, 0005, 2
+length in bit, 10, 1
+start bit, 10, 1
+attr send msg, 02, 1
+sig type, 00, 1
+res, 00, 1
+index, 0054, 2
+length in bit, 10, 1
+start bit, 20, 1
+attr send msg, 02, 1
+sig type, 00, 1
+res, 00, 1
+index, 85FE, 2
+length in bit, 10, 1
+start bit, 30, 1
+attr send msg, 02, 1
+CAN Identifier send messages 2, 00B4, 2
+Cycle / delay time in ms, 0005, 2
+Data length in byte, 08, 1
+Attr, 00, 1
+Total Sigs, 04, 1
+sig type, 02, 1
+res, 00, 1
+index, 0007, 2
+length in bit, 10, 1
+start bit, 00, 1
+attr send msg, 02, 1
+sig type, 02, 1
+res, 00, 1
+index, 0008, 2
+length in bit, 10, 1
+start bit, 10, 1
+attr send msg, 02, 1
+sig type, 02, 1
+res, 00, 1
+index, 000F, 2
+length in bit, 10, 1
+start bit, 20, 1
+attr send msg, 02, 1
+sig type, 02, 1
+res, 00, 1
+index, 001B, 2
+length in bit, 10, 1
+start bit, 30, 1
+attr send msg, 02, 1
+CAN Identifier send messages 3, 00B8, 2
+Cycle / delay time in ms, 0014, 2
+Data length in byte, 08, 1
+Attr, 00, 1
+Total Sigs, 03, 1
+sig type, 00, 1
+res, 00, 1
+index, 8044, 2
+length in bit, 10, 1
+start bit, 00, 1
+attr send msg, 00, 1
+sig type, 00, 1
+res, 00, 1
+index, 814C, 2
+length in bit, 20, 1
+start bit, 10, 1
+attr send msg, 00, 1
+sig type, 00, 1
+res, 00, 1
+index, 0054, 2
+length in bit, 10, 1
+start bit, 30, 1
+attr send msg, 02, 1
+Total of recv msg, 01, 1
+CAN ID recv msg 1, 00A0, 2
+telegram failure monitoring, 0032, 2
+data length in byte, 08, 1
+reservd, 00, 1
+number of recvd signals, 04, 1
+signal type, 02, 1
+reservd, 00, 1
+index, 0004, 2
+length in bits, 10, 1
+start bit, 00, 1
+attr recv message, 00, 1
+signal type, 02, 1
+reservd, 00, 1
+index, 0006, 2
+length in bits, 10, 1
+start bit, 10, 1
+attr recv message, 00, 1
+signal type, 02, 1
+reservd, 00, 1
+index, 000D, 2
+length in bits, 10, 1
+start bit, 20, 1
+attr recv message, 00, 1
+signal type, 02, 1
+reservd, 00, 1
+index, 000E, 2
+length in bits, 10, 1
+start bit, 30, 1
+attr recv message, 00, 1
+transmission rate, 01F4, 2
+end, 0000, 2
