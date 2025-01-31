@@ -139,8 +139,8 @@ def parse_recv_message(cur_can_desc_file, leftover_byte_arg = None):
         
         return send_msg, leftover_byte
 
-# CAN_desc = open("CAN_write.txt", "r")
-CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
+CAN_desc = open("CAN_write.txt", "r")
+# CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
 
 total_send_and_message_config_word = int(CAN_desc.readline(), 16)
 
