@@ -1,6 +1,5 @@
 import json
 
-
 def get_least_sig_val(val):
     return val & 0xFF
 def get_most_sig_val(val):
@@ -139,59 +138,59 @@ def parse_recv_message(cur_can_desc_file, leftover_byte_arg = None):
         
         return send_msg, leftover_byte
 
-# CAN_desc = open("CAN_write.txt", "r")
-CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
 
-total_send_and_message_config_word = int(CAN_desc.readline(), 16)
+def run(path):
+    # CAN_desc = open("CAN_write.txt", "r")
+    # CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
+    CAN_desc = open(path, "r")
 
-description_json = {}
-description_json["message_config"] = total_send_and_message_config_word & 0xFF
+    total_send_and_message_config_word = int(CAN_desc.readline(), 16)
 
-description_json["total_send"] = (total_send_and_message_config_word >> 8) & 0xFF
+    description_json = {}
+    description_json["message_config"] = total_send_and_message_config_word & 0xFF
 
+    description_json["total_send"] = (total_send_and_message_config_word >> 8) & 0xFF
+    current_send_msg_parse_ind = 0
+    description_json["send_msgs"] = []
+    leftover_byte = None
+    while(current_send_msg_parse_ind < description_json["total_send"]):
+        send_msg, leftover_byte = parse_send_message(CAN_desc, leftover_byte)
+        description_json["send_msgs"].append(send_msg)
+        current_send_msg_parse_ind = current_send_msg_parse_ind + 1
 
+    if(leftover_byte is None):
+        total_recv_msgs_and_lsb_first_can_recv_msg_word = int(CAN_desc.readline(), 16)
+        description_json["total_recv_msgs"] = get_least_sig_val(total_recv_msgs_and_lsb_first_can_recv_msg_word)
 
-current_send_msg_parse_ind = 0
-description_json["send_msgs"] = []
-leftover_byte = None
-while(current_send_msg_parse_ind < description_json["total_send"]):
-    send_msg, leftover_byte = parse_send_message(CAN_desc, leftover_byte)
-    description_json["send_msgs"].append(send_msg)
-    current_send_msg_parse_ind = current_send_msg_parse_ind + 1
+        leftover_byte = get_most_sig_val(total_recv_msgs_and_lsb_first_can_recv_msg_word)
+        current_recv_msg_ind = 0
+        description_json["receive_messages"] = []
+        while(current_recv_msg_ind < description_json["total_recv_msgs"]):
+            recv_msg, leftover_byte = parse_recv_message(CAN_desc, leftover_byte)
+            description_json["receive_messages"].append(recv_msg)
+            current_recv_msg_ind = current_recv_msg_ind + 1
 
-if(leftover_byte is None):
-    total_recv_msgs_and_lsb_first_can_recv_msg_word = int(CAN_desc.readline(), 16)
-    description_json["total_recv_msgs"] = get_least_sig_val(total_recv_msgs_and_lsb_first_can_recv_msg_word)
+    else:
 
-    leftover_byte = get_most_sig_val(total_recv_msgs_and_lsb_first_can_recv_msg_word)
-    current_recv_msg_ind = 0
-    description_json["receive_messages"] = []
-    while(current_recv_msg_ind < description_json["total_recv_msgs"]):
-        recv_msg, leftover_byte = parse_recv_message(CAN_desc, leftover_byte)
-        description_json["receive_messages"].append(recv_msg)
-        current_recv_msg_ind = current_recv_msg_ind + 1
+        description_json["total_recv_msgs"] = leftover_byte
+        current_recv_msg_ind = 0
+        description_json["receive_messages"] = []
+        while(current_recv_msg_ind < description_json["total_recv_msgs"]):
+            recv_msg, leftover_byte = parse_recv_message(CAN_desc, leftover_byte)
+            description_json["receive_messages"].append(recv_msg)
+            current_recv_msg_ind = current_recv_msg_ind + 1
 
-else:
+    if(leftover_byte is not None):
 
-    description_json["total_recv_msgs"] = leftover_byte
-    current_recv_msg_ind = 0
-    description_json["receive_messages"] = []
-    while(current_recv_msg_ind < description_json["total_recv_msgs"]):
-        recv_msg, leftover_byte = parse_recv_message(CAN_desc, leftover_byte)
-        description_json["receive_messages"].append(recv_msg)
-        current_recv_msg_ind = current_recv_msg_ind + 1
+        transmission_rate_msb_and_end_byte = int(CAN_desc.readline(), 16)
+        description_json["transmission_rate"] =  (get_least_sig_val(transmission_rate_msb_and_end_byte) << 8) | (leftover_byte)
+    else:
+        description_json["transmission_rate"] = int(CAN_desc.readline(), 16)
 
-if(leftover_byte is not None):
+    json_formatted_str = json.dumps(description_json, indent=2)
 
-    transmission_rate_msb_and_end_byte = int(CAN_desc.readline(), 16)
-    description_json["transmission_rate"] =  (get_least_sig_val(transmission_rate_msb_and_end_byte) << 8) | (leftover_byte)
-else:
-    description_json["transmission_rate"] = int(CAN_desc.readline(), 16)
+    print(json_formatted_str)
 
-json_formatted_str = json.dumps(description_json, indent=2)
-
-print(json_formatted_str)
-
-with open("test_data/data.json", "w") as output:
-    output.write(json_formatted_str)
-    output.close
+    with open("test_data/data.json", "w") as output:
+        output.write(json_formatted_str)
+        output.close
