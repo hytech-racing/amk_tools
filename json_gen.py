@@ -189,7 +189,7 @@ def run(path):
 
     json_formatted_str = json.dumps(description_json, indent=2)
 
-    print(json_formatted_str)
+    # print(json_formatted_str)
 
     with open("test_data/data.json", "w") as output:
         output.write(json_formatted_str)
