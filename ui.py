@@ -57,47 +57,54 @@ class CANTableModel(QAbstractTableModel):
                 pass  # Ignore non-numeric values
 
     def update_send_messages(self, total_send):
-        """Dynamically add or remove send messages while preserving values, even if removed."""
+        """Dynamically add or remove send messages while preserving values, even when set to 0."""
         self.beginResetModel()
 
-        # Extract existing message values before clearing
+        # Extract all existing values before clearing the table
         existing_values = {row[0]: row[1] for row in self.data_list if "Send Message" in row[0]}
+
+        # Save all existing messages before clearing them
+        self.saved_messages_send.update(existing_values)
 
         # Keep the first row (Total Send Messages) and last row (Total Receive Messages)
         total_receive_row = self.data_list[-1]  # Save Total Receive Messages row
         self.data_list = self.data_list[:1]  # Keep only Total Send Messages row
+
+        # If total_send is 0, do NOT lose saved messages; just clear the displayed ones
+        if total_send == 0:
+            self.data_list.append(total_receive_row)
+            self.endResetModel()
+            return
 
         # Restore previously deleted values if available
         for i in range(total_send):
             message_key = f"Send Message {i+1}"
 
             self.data_list.append([f"{message_key} - CAN_ID", 
-                                   existing_values.get(f"{message_key} - CAN_ID", self.saved_messages_send.get(f"{message_key} - CAN_ID", "")), 
-                                   "CAN Identifier"])
+                                self.saved_messages_send.get(f"{message_key} - CAN_ID", ""), 
+                                "CAN Identifier"])
             
             self.data_list.append([f"{message_key} - Cycle Time", 
-                                   existing_values.get(f"{message_key} - Cycle Time", self.saved_messages_send.get(f"{message_key} - Cycle Time", "")), 
-                                   "Cycle time in ms"])
+                                self.saved_messages_send.get(f"{message_key} - Cycle Time", ""), 
+                                "Cycle time in ms"])
             
             self.data_list.append([f"{message_key} - Data Length", 
-                                   existing_values.get(f"{message_key} - Data Length", self.saved_messages_send.get(f"{message_key} - Data Length", "")), 
-                                   "Data length in bytes"])
+                                self.saved_messages_send.get(f"{message_key} - Data Length", ""), 
+                                "Data length in bytes"])
             
             self.data_list.append([f"{message_key} - Attr", 
-                                   existing_values.get(f"{message_key} - Attr", self.saved_messages_send.get(f"{message_key} - Attr", "")), 
-                                   "Attribute value"])
+                                self.saved_messages_send.get(f"{message_key} - Attr", ""), 
+                                "Attribute value"])
             
             self.data_list.append([f"{message_key} - Total Signals", 
-                                   existing_values.get(f"{message_key} - Total Signals", self.saved_messages_send.get(f"{message_key} - Total Signals", "")), 
-                                   "Number of signals in this message"])
-
-        # Save any removed messages for later recovery
-        self.saved_messages_send = existing_values.copy()
+                                self.saved_messages_send.get(f"{message_key} - Total Signals", ""), 
+                                "Number of signals in this message"])
 
         # Reinsert the Total Receive Messages row at the end
         self.data_list.append(total_receive_row)
 
         self.endResetModel()
+
 
 
 class MainWindow(QMainWindow):
