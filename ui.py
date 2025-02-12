@@ -1,6 +1,6 @@
 import sys
 import json, json_gen
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QLabel
 from PyQt5.QtGui import QIcon, QColor, QBrush
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
 
@@ -190,9 +190,24 @@ class MainWindow(QMainWindow):
 
         self.model.update_data(table_data)
 
+class ErrorWindow(QWidget):
+    def __init__(self, error):
+        super().__init__()
+        label = QLabel(error)
+
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        self.setLayout(layout)
+        self.setWindowTitle("Error")
+        self.show()
+
+
 # Run the application
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
+
+    
