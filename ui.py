@@ -190,6 +190,8 @@ class MainWindow(QMainWindow):
 
         self.model.update_data(table_data)
 
+# Creates a error window
+# Syntax is: [dummy variable name] = ErrorWindow("error message here")
 class ErrorWindow(QWidget):
     def __init__(self, error):
         super().__init__()
