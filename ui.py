@@ -1,5 +1,6 @@
 import sys
 import json, json_gen
+import Verification
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar
 from PyQt5.QtGui import QIcon, QColor, QBrush
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
@@ -13,7 +14,6 @@ class CANTableModel(QAbstractTableModel):
             ["Total Receive Messages", "0", "Number of messages to receive"],
         ]
         self.saved_messages_send = {}
-        self.saved_messages = {}
         self.saved_signals_send = {}
         self.saved_signals_recv = {}
 
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
-
+    
         # initial table
         self.table_view = QTableView()
         self.layout.addWidget(self.table_view)
