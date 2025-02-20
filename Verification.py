@@ -5,6 +5,8 @@
 # Message class structure:
 # Attributes list: stores tuple/object? that contains a name, value, and a checker Object???
 
+import json
+
 byte_size = 255
 two_byte_size = 65535
 
@@ -32,9 +34,9 @@ class CANMessage:
         self.total_receive = new_total
 
     # Constructor
-    def __init__(self, config_mode = 1, total_send = 0, total_receive = 0, send_messages = []):
+    def __init__(self, config_mode = 1, total_send = 0, total_receive = 0, send_messages = [], receive_messages = []):
         self.send_messages = send_messages
-        self.receive_messages = []
+        self.receive_messages = receive_messages
         self.update_config_mode(config_mode)
         self.update_send_total(total_send)
         self.update_receive_total(total_send)
@@ -95,7 +97,7 @@ class Packet:
         ret["data_length"] = self.data_length
         ret["attr"] = self.attr
         ret["total_signals"] = self.total_signals
-        ret["signals"] = self.send_messages[0:self.total_signals]
+        ret["signals"] = self.signals[0:self.total_signals]
         return ret
 
     
@@ -137,19 +139,6 @@ class Signal:
         self.update_start_bit(start_bit)
         self.checkers = checker_functions   # Custom validations for the message
 
-    def check_message_fit(self, message):
-        if message >= pow(2, self.data_length * 8):
-            raise OverflowError("Ensure message fits within data length...")
-
-    def updateMessage(self, message):
-        self.check_message_fit(message)
-        for func in self.checkers:
-            func(message)
-
-        self.message = message
-
-    def update_index(self, new_index):
-        self.index = new_index
     
     def get_dict(self):
         ret = dict()
@@ -163,13 +152,39 @@ class Signal:
 
 
 
-
-
-
-
-
-
 class Verification:
+    def read_JSON(file_path):
+        # Open and read the JSON file
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+
+        # Print the data
+        new_message = CANMessage(data["message_config"], data["total_send"], data["total_recv_msgs"])
+
+        for i in range(data["total_send"]):
+            packet_to_encode = data["send_msgs"][i]
+            print(packet_to_encode)
+            new_packet = Packet(packet_to_encode["CAN_ID"], packet_to_encode["cycle_time"], packet_to_encode["data_length"], packet_to_encode["attr"])
+
+            for ii in range(new_packet.total_signals):
+                signal_to_encode = packet_to_encode["signals"][ii]
+                new_signal = Signal(signal_to_encode["signal_type"], signal_to_encode["index"], signal_to_encode["bit_length"], signal_to_encode["start_bit"])
+                new_packet.signals.append(new_signal)
+            new_message.send_messages.append(new_packet)
+
+        for i in range(data["total_recv_msgs"]):
+            packet_to_encode = data["receive_messages"][i]
+            new_packet = Packet(packet_to_encode["CAN_ID"], packet_to_encode["cycle_time"], packet_to_encode["data_length"], packet_to_encode["attr"])
+
+            for ii in range(new_packet.total_signals):
+                signal_to_encode = packet_to_encode["signals"][ii]
+                new_signal = Signal(signal_to_encode["signal_type"], signal_to_encode["index"], signal_to_encode["bit_length"], signal_to_encode["start_bit"])
+                new_packet.signals.append(new_signal)
+            new_message.send_messages.append(new_packet) 
+        
+        return new_message
+
+
 
     def verify_config(config_dictionary):
         # Helper function to verify send signals
@@ -198,6 +213,8 @@ class Verification:
         
         for i in range(total_send):
             verify_send_message(config_dictionary["send_msgs"][i])
+
+print(Verification.read_JSON("test_data/data.json"))
 
 
 
