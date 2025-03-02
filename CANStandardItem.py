@@ -10,7 +10,7 @@ class CANStandardItem(QStandardItem):
         info = self.message.mappings[self.binding]
         print("Updating to " + value)
         try:
-            info["function"]()
+            info["function"](int(value))
         except Exception as e:
             print("this wus a bad output!!!")
             return

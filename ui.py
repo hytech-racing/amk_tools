@@ -68,18 +68,26 @@ class CANTreeModel(QStandardItemModel):
 
 
         receive_messages = QStandardItem("Receive Messages")
-        signal = QStandardItem("Signal")
-
         count = 0
-        countSig = 0
         for send_message in dict_to_process["send_msgs"]:
             iterMessage = QStandardItem(f"Message {count}")
             CANmessage.child(1).appendRow(iterMessage)
+
+            signalDict = send_message["signals"]
             count = count + 1
+            countSig = 0
             for key in send_message.keys():
                 if not isinstance(send_message[key], list):
                     iterMessage.appendRow(self.make_row(key, str(send_message[key]), ""))
-                # else:
+                else:
+                    for sigElement in signalDict:
+                        signal = QStandardItem(f"Signal {countSig}")
+                        print(f"new sig {countSig}")
+                        countSig = countSig + 1
+                        for insideElement in sigElement:
+                            print("appended row")
+                            signal.appendRow(self.make_row(str(insideElement), str(sigElement[insideElement]), ""))
+                        iterMessage.appendRow(signal)
                     
 
 
