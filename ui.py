@@ -4,6 +4,7 @@ from Verification import CANMessage, SendMessage, ReceiveMessage, Signal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
 from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
+from CANStandardItem import CANStandardItem
 
 class CANTableModel(QAbstractTableModel):
     def __init__(self, data = None):
@@ -48,14 +49,9 @@ class CANTreeModel(QStandardItemModel):
         self.populateTree()
 
     def make_row(self, name, value, description):
-        child1_name = QStandardItem(name)
-        child1_value = QStandardItem(value)
-        child1_desc = QStandardItem(description)
-
-        def changed_item_handling(top_left, bottom_right):
-            if child1_name == "message_config" :
-                self.message.update_config_mode(child1_value.data())
-            self.populateTree() 
+        child1_name = CANStandardItem(name, self.message, name)
+        child1_value = CANStandardItem(value, self.message, name)
+        child1_desc = CANStandardItem(description, self.message, name)
 
         # child1_value.dataChanged.connect(changed_item_handling)
 
