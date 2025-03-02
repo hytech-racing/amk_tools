@@ -11,7 +11,16 @@ byte_size = 255
 two_byte_size = 65535
 
 class CANMessage:
-
+    name = [{"config_mode": "Message Mode Configuration"},
+            {"total_send": "Total Send Message Count"},
+            {"total_receive": "Total Receive Message Count"},
+            {"transmission_rate": "Transmission Rate"},
+            ]
+    desc = [{"config_mode": "The 'Free CAN message configuration' is activated with the value 1."},
+            {"total_send": "Maximum of 10 send messages."},
+            {"total_receive": "Maximum of 10 receive messages."},
+            {"transmission_rate": "Transmission rate in kBaud (thousands of symbol changes per second)"},
+            ]
     # update methods:
     def update_config_mode(self, config_mode):
         if config_mode != 1:
@@ -22,7 +31,7 @@ class CANMessage:
             raise Exception("Specified total out of bounds...")
         if len(self.send_messages) < new_total:
             for i in range(new_total - len(self.send_messages)):
-                self.send_messages.append(Packet())
+                self.send_messages.append(SendMessage())
         self.total_send = new_total
 
     def update_receive_total(self, new_total):
@@ -30,7 +39,7 @@ class CANMessage:
             raise Exception("Specified total out of bounds...")
         if len(self.receive_messages) < new_total:
             for i in range(new_total - len(self.receive_messages)):
-                self.receive_messages.append(Packet())
+                self.receive_messages.append(ReceiveMessage())
         self.total_receive = new_total
     
     def update_transmission_rate(self, new_transmission_rate):
@@ -62,20 +71,27 @@ class CANMessage:
         ret["transmission_rate"] = self.transmission_rate
         return ret
 
-        
+class SendMessage:
+    def __init__(self, CAN_ID=0, cycle_time=0, data_length=8, attr=0, total_signals=0, signals=[]):
+        self.signals = signals
+        self.update_CAN_ID(CAN_ID)
+        self.update_data_length(data_length)
+        self.update_total_signals(total_signals)
+        self.update_cycle_time(cycle_time)
+        self.update_attr(attr)
 
-class Packet:
-
-    # update methods
     def update_CAN_ID(self, CAN_ID):
         if CAN_ID > 2047 or CAN_ID < 0:
-            raise OverflowError("CAN_ID needs to fit within a 11-bit integer...")
+            raise OverflowError("CAN_ID needs to fit within an 11-bit integer...")
         self.CAN_ID = CAN_ID
+        
     def update_data_length(self, data_length):
         if data_length > 8 or data_length < 0:
             raise OverflowError("data_length needs to be within [0,8]...")
         self.data_length = data_length
+        
     def update_total_signals(self, new_total):
+        byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
         if len(self.signals) < new_total:
@@ -83,66 +99,74 @@ class Packet:
                 self.signals.append(Signal())
         self.total_signals = new_total
 
-    # Constructor
-    def __init__(self, CAN_ID = 0, data_length = 8, total_signals = 0, signals = []):
-        self.signals = signals
-        self.update_CAN_ID(CAN_ID)
-        self.update_data_length(data_length)
-        self.update_total_signals(total_signals)
-
-    # Dictionary method
     def getDict(self):
-        ret = dict()
-        ret["CAN_ID"] = self.CAN_ID
-        ret["data_length"] = self.data_length
-        ret["total_signals"] = self.total_signals
-        ret["signals"] = self.signals[0:self.total_signals]
-        
-        # replace these signals by their dictionaries
-        for i in range(len(ret["signals"])):
-            ret["signals"][i] = ret["signals"][i].get_dict()
+        ret = {
+            "CAN_ID": self.CAN_ID,
+            "data_length": self.data_length,
+            "total_signals": self.total_signals,
+            "signals": [signal.get_dict() for signal in self.signals[:self.total_signals]],
+            "cycle_time": self.cycle_time,
+            "attr": self.attr
+        }
         return ret
 
-    
-class SendMessage(Packet):
     def update_cycle_time(self, cycle_time):
         if cycle_time > two_byte_size or cycle_time < 0:
             raise OverflowError("cycle_time needs to fit within two bytes...")
         self.cycle_time = cycle_time
     
     def update_attr(self, attr):
-        if attr != 0 and attr != 1:
+        if attr not in [0, 1]:
             raise Exception("attr can only be 1 or 0...")
         self.attr = attr
 
-    def __init__(self, CAN_ID=0, cycle_time=0, data_length=8, attr=0, total_signals=0, signals=[]):
-        super().__init__(CAN_ID, data_length, total_signals, signals)
-        self.update_cycle_time(cycle_time)
-        self.update_attr(attr)
-    
-    def getDict(self):
-        super_dict = super().getDict()
-        super_dict["cycle_time"] = self.cycle_time
-        super_dict["attr"] = self.attr
-        return super_dict
+class ReceiveMessage:
+    def __init__(self, CAN_ID=0, telegram_failure_monitoring=0, data_length=8, total_signals=0, signals=[]):
+        # Core CAN attributes
+        self.signals = signals
+        self.update_CAN_ID(CAN_ID)
+        self.update_data_length(data_length)
+        self.update_total_signals(total_signals)
+        
+        # ReceiveMessage-specific attributes
+        self.update_telegram_failure_monitoring(telegram_failure_monitoring)
 
-class ReceiveMessage(Packet):
+    # ===== Core CAN Methods (from Packet) =====
+    def update_CAN_ID(self, CAN_ID):
+        if CAN_ID > 2047 or CAN_ID < 0:
+            raise OverflowError("CAN_ID needs to fit within an 11-bit integer...")
+        self.CAN_ID = CAN_ID
+        
+    def update_data_length(self, data_length):
+        if data_length > 8 or data_length < 0:
+            raise OverflowError("data_length needs to be within [0,8]...")
+        self.data_length = data_length
+        
+    def update_total_signals(self, new_total):
+        byte_size = 8  # Assuming byte size to be 8 for this context
+        if new_total > byte_size:
+            raise OverflowError("total_signals needs to fit within 1 byte...")
+        if len(self.signals) < new_total:
+            for i in range(new_total - len(self.signals)):
+                self.signals.append(Signal())
+        self.total_signals = new_total
+
+    def getDict(self):
+        ret = {
+            "CAN_ID": self.CAN_ID,
+            "data_length": self.data_length,
+            "total_signals": self.total_signals,
+            "signals": [signal.get_dict() for signal in self.signals[:self.total_signals]],
+            "telegram_failure_monitoring": self.telegram_failure_monitoring
+        }
+        return ret
+    
+    # ===== ReceiveMessage Specific Method =====
     def update_telegram_failure_monitoring(self, telegram_failure_monitoring):
+        two_byte_size = 65535  # 2-byte max value
         if telegram_failure_monitoring > two_byte_size or telegram_failure_monitoring < 0:
             raise OverflowError("telegram_failure_monitoring needs to fit within two bytes...")
         self.telegram_failure_monitoring = telegram_failure_monitoring
-
-    def __init__(self, CAN_ID=0, telegram_failure_monitoring=0, data_length=8, total_signals=0, signals=[]):
-        super().__init__(CAN_ID, data_length, total_signals, signals)
-        self.update_telegram_failure_monitoring(telegram_failure_monitoring)
-    
-    def getDict(self):
-        super_dict = super().getDict()
-        super_dict["telegram_failure_monitoring"] = self.telegram_failure_monitoring
-        return super_dict
-        
-
-    
 
 
 class Signal:
@@ -228,7 +252,3 @@ class Verification:
 
 Verification.write_JSON("test_data/new_file.json", Verification.read_JSON("test_data/data.json"))
         
-
-
-
-

@@ -1,8 +1,8 @@
 import sys
 import json, json_gen
-import Verification
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar
-from PyQt5.QtGui import QIcon, QColor, QBrush
+from Verification import CANMessage, SendMessage, ReceiveMessage, Signal
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
+from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
 
 class CANTableModel(QAbstractTableModel):
@@ -26,7 +26,6 @@ class CANTableModel(QAbstractTableModel):
         if index.isValid() and role == Qt.EditRole:
             self.data_list[index.row()][index.column()] = value
             self.dataChanged.emit(index, index)
-            self.handle_dynamic_update(index.row(), value)
             return True
         return False
 
@@ -38,6 +37,60 @@ class CANTableModel(QAbstractTableModel):
     def flags(self, index):
         """Enable editing for the value column."""
         if index.column() == 1:
+            return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+    
+class CANTreeModel(QStandardItemModel):
+    def __init__(self, data=None):
+        super().__init__()
+        self.setHorizontalHeaderLabels(["Name", "Value", "Description"])
+        self.message = CANMessage(1, 2)
+        self.populateTree()
+
+    def make_row(self, name, value, description):
+        child1_name = QStandardItem(name)
+        child1_value = QStandardItem(value)
+        child1_desc = QStandardItem(description)
+
+        def changed_item_handling(top_left, bottom_right):
+            if child1_name == "message_config" :
+                self.message.update_config_mode(child1_value.data())
+            self.populateTree() 
+
+        # child1_value.dataChanged.connect(changed_item_handling)
+
+        return [child1_name, child1_value, child1_desc]
+
+    def populateTree(self):
+        dict_to_process = self.message.get_dict()
+
+        CANmessage = QStandardItem("CAN Message")
+
+        for key in dict_to_process.keys():
+            if not type(dict[key]) == dict:
+                CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), ""))
+
+
+
+        send_messages = QStandardItem("Send Messages")
+        receive_messages = QStandardItem("Receive Messages")
+        signal = QStandardItem("Signal")
+
+        for send_message in dict_to_process["send_msgs"]:
+            for key in send_message.keys():
+                if not type(dict[key]) == list:
+                    send_messages.appendRow(self.make_row(key, str(send_message[key]), ""))
+
+        # sendMsgItem = QStandardItem(f"Send Message {}")
+
+
+        CANmessage.child(1).appendRow(send_messages)
+        CANmessage.child(2).appendRow(receive_messages)
+        
+        self.appendRow(CANmessage)
+
+    def flags(self, index):
+        if index.column() == 1:  # Only "Value" column is editable
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
@@ -63,7 +116,7 @@ class MainWindow(QMainWindow):
             json_data = json.load(file)
 
     def initUI(self):
-        self.setWindowTitle("name")
+        self.setWindowTitle("AMK Tool: Message Editor")
         self.setGeometry(100, 100, 1600, 900)
         appIcon = QIcon("res/10617840.png")
         QApplication.setWindowIcon(appIcon)
@@ -91,14 +144,24 @@ class MainWindow(QMainWindow):
         self.central_widget.setLayout(self.layout)
     
         # initial table
-        self.table_view = QTableView()
-        self.layout.addWidget(self.table_view)
+        # self.table_view = QTableView()
+        # self.layout.addWidget(self.table_view)
 
-        self.model = CANTableModel()
-        self.table_view.setModel(self.model)
-        self.table_view.setColumnWidth(0, 350)
-        self.table_view.setColumnWidth(1, 200)
-        self.table_view.setColumnWidth(2, 1000)
+        # initial tree
+        self.tree_view = QTreeView()
+        self.layout.addWidget(self.tree_view)
+        self.model = CANTreeModel()
+        self.tree_view.setModel(self.model)
+        self.tree_view.expandAll()
+        self.tree_view.setRootIsDecorated(False)
+        self.tree_view.setColumnWidth(0, 350)
+        self.tree_view.setColumnWidth(1, 200)
+        self.tree_view.setColumnWidth(2, 1000)
+        # self.model = CANTableModel()
+        # self.table_view.setModel(self.model)
+        # self.table_view.setColumnWidth(0, 350)
+        # self.table_view.setColumnWidth(1, 200)
+        # self.table_view.setColumnWidth(2, 1000)
 
 
 # Run the application
