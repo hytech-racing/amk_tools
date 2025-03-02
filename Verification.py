@@ -55,6 +55,28 @@ class CANMessage:
         self.update_send_total(total_send)
         self.update_receive_total(total_receive)
         self.update_transmission_rate(transmission_rate)
+
+        self.mappings = {
+            "message_config": {
+                "function": self.update_config_mode,
+                "description": "Message Mode Configuration. The 'Free CAN message configuration' is activated with the value 1."
+            },
+
+            "total_send": {
+                "function": self.update_send_total,
+                "description": "do later"
+            },
+
+            "total_recv_msgs": {
+                "function": self.update_receive_total,
+                "description": "sdf"
+            },
+
+            "transmission_rate": {
+                "function": self.update_transmission_rate,
+                "description": "tadf"
+            }
+        }
     
     # Dictionary getter
     def get_dict(self):
