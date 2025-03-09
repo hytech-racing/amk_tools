@@ -21,6 +21,7 @@ class CANMessage:
             {"total_receive": "Maximum of 10 receive messages."},
             {"transmission_rate": "Transmission rate in kBaud (thousands of symbol changes per second)"},
             ]
+    
     # update methods:
     def update_config_mode(self, config_mode):
         if config_mode != 1:
@@ -55,6 +56,20 @@ class CANMessage:
         self.update_send_total(total_send)
         self.update_receive_total(total_receive)
         self.update_transmission_rate(transmission_rate)
+
+        # fix attempt
+        self.CANMessageDict = dict()
+        self.CANMessageDict["message_config"] = self.config_mode
+        self.CANMessageDict["total_send"] = self.total_send
+        self.CANMessageDict["total_recv_msgs"] = self.total_receive
+        self.CANMessageDict["send_msgs"] = self.send_messages[0:self.total_send]
+        self.CANMessageDict["receive_messages"] = self.receive_messages[0:self.total_receive]
+        for i in range(len(self.CANMessageDict["send_msgs"])):
+            self.CANMessageDict["send_msgs"][i] = self.CANMessageDict["send_msgs"][i].getDict()
+        for i in range(len(self.CANMessageDict["receive_messages"])):
+            self.CANMessageDict["receive_messages"][i] = self.CANMessageDict["receive_messages"][i].getDict()
+        self.CANMessageDict["transmission_rate"] = self.transmission_rate
+        # doesnt make dict???
 
         self.mappings = {
             "message_config": {
@@ -101,6 +116,28 @@ class SendMessage:
         self.update_total_signals(total_signals)
         self.update_cycle_time(cycle_time)
         self.update_attr(attr)
+        self.mappings = {
+            "CAN_ID": {
+                "function": self.update_CAN_ID,
+                "description": "11-bit CAN identifier."
+            },
+            "data_length": {
+                "function": self.update_data_length,
+                "description": "Size of the CAN message (0-8 bytes)."
+            },
+            "total_signals": {
+                "function": self.update_total_signals,
+                "description": "Number of signals in this CAN message."
+            },
+            "cycle_time": {
+                "function": self.update_cycle_time,
+                "description": "Cycle time of the message in milliseconds."
+            },
+            "attr": {
+                "function": self.update_attr,
+                "description": "Attribute flag (0 or 1)."
+            }
+        }
 
     def update_CAN_ID(self, CAN_ID):
         if CAN_ID > 2047 or CAN_ID < 0:
@@ -131,7 +168,7 @@ class SendMessage:
             "attr": self.attr
         }
         return ret
-
+    
     def update_cycle_time(self, cycle_time):
         if cycle_time > two_byte_size or cycle_time < 0:
             raise OverflowError("cycle_time needs to fit within two bytes...")
@@ -152,6 +189,24 @@ class ReceiveMessage:
         
         # ReceiveMessage-specific attributes
         self.update_telegram_failure_monitoring(telegram_failure_monitoring)
+        self.mappings = {
+            "CAN_ID": {
+                "function": self.update_CAN_ID,
+                "description": "11-bit CAN identifier."
+            },
+            "data_length": {
+                "function": self.update_data_length,
+                "description": "Size of the CAN message (0-8 bytes)."
+            },
+            "total_signals": {
+                "function": self.update_total_signals,
+                "description": "Number of signals in this CAN message."
+            },
+            "telegram_failure_monitoring": {
+                "function": self.update_telegram_failure_monitoring,
+                "description": "Error-checking value (0-65535)."
+            }
+        }
 
     # ===== Core CAN Methods (from Packet) =====
     def update_CAN_ID(self, CAN_ID):
@@ -202,14 +257,14 @@ class Signal:
         if index > two_byte_size:
             raise OverflowError("Ensure signal index is less than two bytes...")
         self.index = index                  # Index SERCOS or Special signal
-    def update_data_length(self, data_length):
-        if data_length < 0:
+    def update_bit_length(self, bit_length):
+        if bit_length < 0:
             raise Exception("Data length cannot be negative...")
-        if data_length > byte_size:
+        if bit_length > byte_size:
             raise OverflowError("data_length must fit within a byte...")
-        self.data_length = data_length      # Data length index in bit
+        self.bit_length = bit_length      # Data length index in bit
     def update_message(self, message):
-        if message >= pow(2, self.data_length * 8):
+        if message >= pow(2, self.bit_length * 8):
             raise OverflowError("Ensure message fits within data length...")
         for checker in self.checkers:
             checker(message)
@@ -218,20 +273,41 @@ class Signal:
         self.start_bit = start_bit
 
 
-    def __init__(self, signal_type = 0, index = 0, data_length = 0, message = 0, start_bit = 0, checker_functions = []):
+    def __init__(self, signal_type = 0, index = 0, bit_length = 0, message = 0, start_bit = 0, checker_functions = []):
         self.checkers = checker_functions   # Custom validations for the message
         self.update_signal_type(signal_type)
         self.update_index(index)
-        self.update_data_length(data_length)
+        self.update_bit_length(bit_length)
         self.update_message(message)
         self.update_start_bit(start_bit)
-
+        self.mappings = {
+            "signal_type": {
+                "function": self.update_signal_type,
+                "description": "Signal type (0 = SERCOS Parameter, 2 = Special Signal)."
+            },
+            "index": {
+                "function": self.update_index,
+                "description": "Signal index (max 65535)."
+            },
+            "bit_length": {
+                "function": self.update_bit_length,
+                "description": "Length of the signal in bits."
+            },
+            "start_bit": {
+                "function": self.update_start_bit,
+                "description": "Start position of the signal in the CAN frame."
+            },
+            "sig_attr": {
+                "function": self.update_message,
+                "description": "Encoded message content."
+            }
+        }
     
     def get_dict(self):
         ret = dict()
         ret["signal_type"] = self.signal_type
         ret["index"] = self.index
-        ret["bit_length"] = self.data_length
+        ret["bit_length"] = self.bit_length
         ret["start_bit"] = self.start_bit
         ret["sig_attr"] = self.message
         return ret

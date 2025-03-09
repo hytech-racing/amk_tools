@@ -57,19 +57,27 @@ class CANTreeModel(QStandardItemModel):
 
         return [child1_name, child1_value, child1_desc]
 
-    def populateTree(self):
-        dict_to_process = self.message.get_dict()
+    # def make_row(self, name, value, description, obj):
+    #     """ Creates a row with Name, Value, and Description, bound to a specific object. """
+    #     child1_name = CANStandardItem(name, obj, name)  # Name column
+    #     child1_value = CANStandardItem(value, obj, name)  # Value column (editable)
+    #     child1_desc = QStandardItem(description)  # Description column
 
+    #     return [child1_name, child1_value, child1_desc]
+    
+    def populateTree(self):
+        dict_to_process = self.message.get_dict() # dict
         CANmessage = QStandardItem("CAN Message")
 
-        for key in dict_to_process.keys():
+        for key in dict_to_process.keys(): # dict
             if not isinstance(dict_to_process[key], list):
                 CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), ""))
 
+        print(f"TESTING: {CANmessage.__dict__}")
 
-        receive_messages = QStandardItem("Receive Messages")
+
         count = 0
-        for send_message in dict_to_process["send_msgs"]:
+        for send_message in dict_to_process["send_msgs"]: # dict
             iterMessage = QStandardItem(f"Message {count}")
             CANmessage.child(1).appendRow(iterMessage)
 
@@ -79,24 +87,81 @@ class CANTreeModel(QStandardItemModel):
             for key in send_message.keys():
                 if not isinstance(send_message[key], list):
                     iterMessage.appendRow(self.make_row(key, str(send_message[key]), ""))
+                    print(f"DEBUG: Adding {key} to tree from {str(send_message)}'s {type(send_message).__name__}")
                 else:
                     for sigElement in signalDict:
                         signal = QStandardItem(f"Signal {countSig}")
-                        print(f"new sig {countSig}")
                         countSig = countSig + 1
                         for insideElement in sigElement:
-                            print("appended row")
                             signal.appendRow(self.make_row(str(insideElement), str(sigElement[insideElement]), ""))
+                            print(f"DEBUG: Adding {insideElement} to tree from {str(sigElement)}'s {type(sigElement).__name__}")
                         iterMessage.appendRow(signal)
                     
-
-
-
-
-
-        CANmessage.child(2).appendRow(receive_messages)
+        # CANmessage.child(2).appendRow() # position for receive messages
         
         self.appendRow(CANmessage)
+
+
+
+    # def populateTree(self):
+    #     """ Builds the tree structure, correctly binding objects to editable fields. """
+
+    #     dict_to_process = self.message.get_dict()
+    #     CANmessage = QStandardItem("CAN Message")
+
+    #     # Attach CANMessage attributes (config_mode, total_send, etc.)
+    #     for key in dict_to_process.keys():
+    #         if not isinstance(dict_to_process[key], list):
+    #             CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), "", self.message))
+
+    #     # Attach Send Messages
+    #     send_messages_item = QStandardItem("Send Messages")
+    #     CANmessage.appendRow(send_messages_item)
+
+    #     for i, send_msg in enumerate(self.message.send_messages):
+    #         send_message_item = QStandardItem(f"Send Message {i}")
+    #         send_messages_item.appendRow(send_message_item)
+
+    #         # Attach SendMessage attributes (CAN_ID, data_length, cycle_time, etc.)
+    #         for key in send_msg.mappings.keys():
+    #             send_message_item.appendRow(self.make_row(key, getattr(send_msg, key), "", send_msg))
+
+    #         # Attach Signals inside SendMessage
+    #         signals_item = QStandardItem("Signals")
+    #         send_message_item.appendRow(signals_item)
+
+    #         for j, signal in enumerate(send_msg.signals):
+    #             signal_item = QStandardItem(f"Signal {j}")
+    #             signals_item.appendRow(signal_item)
+
+    #             for key in signal.mappings.keys():
+    #                 signal_item.appendRow(self.make_row(key, getattr(signal, key), "", signal))
+
+    #     # Attach Receive Messages
+    #     receive_messages_item = QStandardItem("Receive Messages")
+    #     CANmessage.appendRow(receive_messages_item)
+
+    #     for i, recv_msg in enumerate(self.message.receive_messages):
+    #         receive_message_item = QStandardItem(f"Receive Message {i}")
+    #         receive_messages_item.appendRow(receive_message_item)
+
+    #         # Attach ReceiveMessage attributes (CAN_ID, data_length, telegram_failure_monitoring, etc.)
+    #         for key in recv_msg.mappings.keys():
+    #             receive_message_item.appendRow(self.make_row(key, getattr(recv_msg, key), "", recv_msg))
+
+    #         # Attach Signals inside ReceiveMessage
+    #         signals_item = QStandardItem("Signals")
+    #         receive_message_item.appendRow(signals_item)
+
+    #         for j, signal in enumerate(recv_msg.signals):
+    #             signal_item = QStandardItem(f"Signal {j}")
+    #             signals_item.appendRow(signal_item)
+
+    #             for key in signal.mappings.keys():
+    #                 signal_item.appendRow(self.make_row(key, getattr(signal, key), "", signal))
+
+    #     # Add the completed CANMessage hierarchy to the model
+    #     self.appendRow(CANmessage)
 
     def flags(self, index):
         if index.column() == 1:  # Only "Value" column is editable
