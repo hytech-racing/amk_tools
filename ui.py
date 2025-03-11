@@ -53,8 +53,6 @@ class CANTreeModel(QStandardItemModel):
         child1_value = CANStandardItem(value, self.message, name)
         child1_desc = CANStandardItem(description, self.message, name)
 
-        # child1_value.dataChanged.connect(changed_item_handling)
-
         return [child1_name, child1_value, child1_desc]
 
     # def make_row(self, name, value, description, obj):
@@ -66,14 +64,13 @@ class CANTreeModel(QStandardItemModel):
     #     return [child1_name, child1_value, child1_desc]
     
     def populateTree(self):
-        dict_to_process = self.message.get_dict() # dict
+        dict_to_process = self.message.CANMessageDict # dict
         CANmessage = QStandardItem("CAN Message")
 
         for key in dict_to_process.keys(): # dict
             if not isinstance(dict_to_process[key], list):
                 CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), ""))
 
-        print(f"TESTING: {CANmessage.__dict__}")
 
 
         count = 0
