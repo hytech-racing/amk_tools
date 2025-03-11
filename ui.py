@@ -174,14 +174,22 @@ class MainWindow(QMainWindow):
 
     def importJsonFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import JSON File", "", "JSON Files (*.json)")
+        if not filePath:
+            print("No import path selected.")
+            return
+        
         new_message = Verification.read_JSON(filePath) # returns a CANMessage
-        self.model = CANTreeModel(new_message)
+        self.model = CANTreeModel(new_message) # resets tree with new CANMessage from file
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
 
     def importRawFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import Raw File", "", "")
+        if not filePath:
+            print("No import path selected.")
+            return
         json_gen.run(filePath) # creates JSON from raw at "test_data/data.json"
+
         new_message = Verification.read_JSON("test_data/data.json") # returns a CANMessage
         self.model = CANTreeModel(new_message)
         self.tree_view.setModel(self.model)
@@ -196,6 +204,9 @@ class MainWindow(QMainWindow):
             os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
             "JSON Files (*.json)"
         )
+        if not filePath:
+            print("No export path selected.")
+            return
 
         Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
 
@@ -209,6 +220,9 @@ class MainWindow(QMainWindow):
             os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
             "JSON Files (*.json)"
         )
+        if not filePath:
+            print("No export path selected.")
+            return
 
         Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
 
@@ -230,7 +244,7 @@ class MainWindow(QMainWindow):
         exportJsonAction = QAction("Export as JSON", self)
         exportJsonAction.triggered.connect(self.exportJsonFile)
         exportRawAction = QAction("Export as RAW", self)
-        exportJsonAction.triggered.connect(self.exportRawFile)
+        exportRawAction.triggered.connect(self.exportRawFile)
 
 
         fileMenu.addAction(importJsonAction)
