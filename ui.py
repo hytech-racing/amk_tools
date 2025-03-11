@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import json, json_gen
 from Verification import CANMessage, SendMessage, ReceiveMessage, Signal, Verification
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
@@ -187,6 +187,31 @@ class MainWindow(QMainWindow):
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
 
+    def exportJsonFile(self):
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        filePath, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export JSON File", 
+            os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
+            "JSON Files (*.json)"
+        )
+
+        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
+
+    def exportRawFile(self):
+        # TODO Make this actually work, not the exact same as exportJsonFile lol
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        filePath, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export JSON File", 
+            os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
+            "JSON Files (*.json)"
+        )
+
+        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
+
     def initUI(self):
         self.setWindowTitle("AMK Tool: Message Editor")
         self.setGeometry(100, 100, 1600, 900)
@@ -202,11 +227,16 @@ class MainWindow(QMainWindow):
         importRawAction = QAction("Import RAW", self)
         importRawAction.triggered.connect(self.importRawFile)
 
-        exportAction = QAction("Export", self)
+        exportJsonAction = QAction("Export as JSON", self)
+        exportJsonAction.triggered.connect(self.exportJsonFile)
+        exportRawAction = QAction("Export as RAW", self)
+        exportJsonAction.triggered.connect(self.exportRawFile)
+
 
         fileMenu.addAction(importJsonAction)
         fileMenu.addAction(importRawAction)
-        fileMenu.addAction(exportAction)
+        fileMenu.addAction(exportJsonAction)
+        fileMenu.addAction(exportRawAction)
 
 
         # initial ui

@@ -347,5 +347,3 @@ class Verification:
     def write_JSON(file_path, can_message):
         with open(file_path, 'w') as file:
             json.dump(can_message.get_dict(), file, indent=2)
-
-        
