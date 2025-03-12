@@ -4,7 +4,7 @@ This is a tool for editing CAN Messages.
 ## Features
 - Importing RAW/JSON CAN messages
 - Exporting RAW/JSON CAN messages
-- Editting values
+- Editing values
 - Checks for invalid values
 
 ## WIP
