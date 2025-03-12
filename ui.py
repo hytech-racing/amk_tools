@@ -1,5 +1,5 @@
 import sys, os
-import json, json_gen
+import json, json_gen, gen_bytes
 from Verification import CANMessage, SendMessage, ReceiveMessage, Signal, Verification
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
 from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
@@ -115,7 +115,6 @@ class MainWindow(QMainWindow):
 
     def exportJsonFile(self):
         download_path = os.path.join(os.path.expanduser("~"), "Downloads")
-
         filePath, _ = QFileDialog.getSaveFileName(
             self, 
             "Export JSON File", 
@@ -126,23 +125,29 @@ class MainWindow(QMainWindow):
             print("No export path selected.")
             return
 
-        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
+        Verification.write_JSON(filePath, self.model.message)
+        print(f"DEBUG: Exported CANMessage to {filePath}")
 
     def exportRawFile(self):
-        # TODO Make this actually work, not the exact same as exportJsonFile lol
         download_path = os.path.join(os.path.expanduser("~"), "Downloads")
-
         filePath, _ = QFileDialog.getSaveFileName(
             self, 
-            "Export JSON File", 
-            os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
-            "JSON Files (*.json)"
+            "Export RAW File", 
+            os.path.join(download_path, "exported_CANMessage"),  # Default file path
+            ""
         )
         if not filePath:
             print("No export path selected.")
             return
+        Verification.write_JSON("test_data/toRaw.json", self.model.message)
+        gen_bytes.jsonToRaw("test_data/toRaw.json", filePath)
 
-        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
+    def resetView(self):
+        self.tree_view.expandAll()
+        self.tree_view.setRootIsDecorated(False)
+        self.tree_view.setColumnWidth(0, 350)
+        self.tree_view.setColumnWidth(1, 200)
+        self.tree_view.setColumnWidth(2, 1000)
 
     def initUI(self):
         self.setWindowTitle("AMK Tool: CAN Message Editor")
@@ -163,11 +168,16 @@ class MainWindow(QMainWindow):
         exportRawAction = QAction("Export as RAW", self)
         exportRawAction.triggered.connect(self.exportRawFile)
 
+        resetViewAction = QAction("Expand all rows", self)
+        resetViewAction.triggered.connect(self.resetView)
+
 
         fileMenu.addAction(importJsonAction)
         fileMenu.addAction(importRawAction)
         fileMenu.addAction(exportJsonAction)
         fileMenu.addAction(exportRawAction)
+        
+        menuBar.addAction(resetViewAction)
 
 
         # initial ui

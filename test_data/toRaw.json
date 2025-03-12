@@ -1,12 +1,11 @@
 {
   "message_config": 1,
   "total_send": 0,
-  "send_msgs": [],
   "total_recv_msgs": 1,
+  "send_msgs": [],
   "receive_messages": [
     {
       "CAN_ID": 160,
-      "telegram_failure_monitoring": 50,
       "data_length": 8,
       "total_signals": 4,
       "signals": [
@@ -38,7 +37,8 @@
           "start_bit": 0,
           "sig_attr": 0
         }
-      ]
+      ],
+      "telegram_failure_monitoring": 50
     }
   ],
   "transmission_rate": 500
