@@ -6,40 +6,40 @@ from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
 from CANStandardItem import CANStandardItem
 
-class CANTableModel(QAbstractTableModel):
-    def __init__(self, data = None):
-        super().__init__()
-        self.headers = ["Name", "Value", "Description"]
-        self.data_list = []
+# class CANTableModel(QAbstractTableModel):
+#     def __init__(self, data = None):
+#         super().__init__()
+#         self.headers = ["Name", "Value", "Description"]
+#         self.data_list = []
 
-    def rowCount(self, parent=None):
-        return len(self.data_list)
+#     def rowCount(self, parent=None):
+#         return len(self.data_list)
 
-    def columnCount(self, parent=None):
-        return len(self.headers)
+#     def columnCount(self, parent=None):
+#         return len(self.headers)
     
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid() or role != Qt.DisplayRole:
-            return None
-        return self.data_list[index.row()][index.column()]
+#     def data(self, index, role=Qt.DisplayRole):
+#         if not index.isValid() or role != Qt.DisplayRole:
+#             return None
+#         return self.data_list[index.row()][index.column()]
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if index.isValid() and role == Qt.EditRole:
-            self.data_list[index.row()][index.column()] = value
-            self.dataChanged.emit(index, index)
-            return True
-        return False
+#     def setData(self, index, value, role=Qt.EditRole):
+#         if index.isValid() and role == Qt.EditRole:
+#             self.data_list[index.row()][index.column()] = value
+#             self.dataChanged.emit(index, index)
+#             return True
+#         return False
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            return self.headers[section]
-        return None
+#     def headerData(self, section, orientation, role=Qt.DisplayRole):
+#         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+#             return self.headers[section]
+#         return None
 
-    def flags(self, index):
-        """Enable editing for the value column."""
-        if index.column() == 1:
-            return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
-        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+#     def flags(self, index):
+#         """Enable editing for the value column."""
+#         if index.column() == 1:
+#             return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
+#         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
     
 class CANTreeModel(QStandardItemModel):
     def __init__(self, message =None):
@@ -47,58 +47,112 @@ class CANTreeModel(QStandardItemModel):
         self.message = message if message else CANMessage(1, 0, 0, 500)
         self.populateTree()
 
-    def make_row(self, name, value, description):
-        child1_name = CANStandardItem(name, self.message, name)
-        child1_value = CANStandardItem(value, self.message, name)
-        child1_desc = CANStandardItem(description, self.message, name)
-
-        return [child1_name, child1_value, child1_desc]
-
-    # def make_row(self, name, value, description, obj):
-    #     """ Creates a row with Name, Value, and Description, bound to a specific object. """
-    #     child1_name = CANStandardItem(name, obj, name)  # Name column
-    #     child1_value = CANStandardItem(value, obj, name)  # Value column (editable)
-    #     child1_desc = QStandardItem(description)  # Description column
+    # def make_row(self, name, value, description):
+    #     child1_name = CANStandardItem(name, self.message, name)
+    #     child1_value = CANStandardItem(value, self.message, name)
+    #     child1_desc = CANStandardItem(description, self.message, name)
 
     #     return [child1_name, child1_value, child1_desc]
+
+    def make_row(self, name, value, description, obj):
+        """ Creates a row with Name, Value, and Description, bound to a specific object. """
+        child1_name = CANStandardItem(name, obj, name, self.populateTree)  # Name column
+        child1_value = CANStandardItem(value, obj, name, self.populateTree)  # Value column (editable)
+        child1_desc = QStandardItem(description)  # Description column
+
+        return [child1_name, child1_value, child1_desc]
     
     def populateTree(self):
         self.clear()
         self.setHorizontalHeaderLabels(["Name", "Value", "Description"])
+        print(self.parent)
+        can_message = QStandardItem("CAN Message")
 
-        dict_to_process = self.message.CANMessageDict # dict
-        CANmessage = QStandardItem("CAN Message")
+        self.appendRow(can_message)
 
-        for key in dict_to_process.keys(): # dict
-            if not isinstance(dict_to_process[key], list):
-                CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), ""))
+        CAN_message_dictionary = self.message.get_dict()
+        for key in self.message.mappings:
+            can_message.appendRow(self.make_row(key, CAN_message_dictionary[key], self.message.mappings[key]["description"], self.message))
 
-
-
-        count = 0
-        for send_message in dict_to_process["send_msgs"]: # dict
-            iterMessage = QStandardItem(f"Message {count}")
-            CANmessage.child(1).appendRow(iterMessage)
-
-            signalDict = send_message["signals"]
-            count = count + 1
-            countSig = 0
-            for key in send_message.keys():
-                if not isinstance(send_message[key], list):
-                    iterMessage.appendRow(self.make_row(key, str(send_message[key]), ""))
-                    print(f"DEBUG: Adding {key} to tree from {str(send_message)}'s {type(send_message).__name__}")
-                else:
-                    for sigElement in signalDict:
-                        signal = QStandardItem(f"Signal {countSig}")
-                        countSig = countSig + 1
-                        for insideElement in sigElement:
-                            signal.appendRow(self.make_row(str(insideElement), str(sigElement[insideElement]), ""))
-                            print(f"DEBUG: Adding {insideElement} to tree from {str(sigElement)}'s {type(sigElement).__name__}")
-                        iterMessage.appendRow(signal)
-                    
-        # CANmessage.child(2).appendRow() # position for receive messages
+        send_header = QStandardItem("Send Messages")
         
-        self.appendRow(CANmessage)
+        for i in range(self.message.total_send):
+            send_message = self.message.send_messages[i]
+            send_message_header = QStandardItem("Send Message " + str(i + 1))
+            send_message_dictionary = send_message.getDict()
+
+            for key in send_message.mappings:
+                send_message_header.appendRow(self.make_row(key, send_message_dictionary[key], send_message.mappings[key]["description"], send_message))
+
+            signal_header = QStandardItem("Signals")
+
+            for ii in range(send_message.total_signals):
+                signal = send_message.signals[ii]
+                signal_message_header = QStandardItem("Signal " + str(ii + 1))
+                signal_dict = signal.get_dict()
+
+                for key in signal.mappings:
+                    signal_message_header.appendRow(self.make_row(key, signal_dict[key], signal.mappings[key]["description"], signal))
+                signal_header.appendRow(signal_message_header)
+            send_message_header.appendRow(signal_header)
+            send_header.appendRow(send_message_header)
+        can_message.appendRow(send_header)
+
+        receive_header = QStandardItem("Receive Messages")
+        
+        for i in range(self.message.total_receive):
+            receive_message = self.message.receive_messages[i]
+            receive_message_header = QStandardItem("Receive Message " + str(i + 1))
+            receive_message_dictionary = receive_message.getDict()
+
+            for key in receive_message.mappings:
+                receive_message_header.appendRow(self.make_row(key, receive_message_dictionary[key], receive_message.mappings[key]["description"], receive_message))
+
+            signal_header = QStandardItem("Signals")
+
+            for ii in range(receive_message.total_signals):
+                signal = receive_message.signals[ii]
+                signal_message_header = QStandardItem("Signal " + str(ii + 1))
+                signal_dict = signal.get_dict()
+
+                for key in signal.mappings:
+                    signal_message_header.appendRow(self.make_row(key, signal_dict[key], signal.mappings[key]["description"], signal))
+                signal_header.appendRow(signal_message_header)
+            receive_message_header.appendRow(signal_header)
+            receive_header.appendRow(receive_message_header)
+        can_message.appendRow(receive_header)
+        
+
+        # for key in dict_to_process.keys(): # dict
+        #     if not isinstance(dict_to_process[key], list):
+        #         CANmessage.appendRow(self.make_row(key, str(dict_to_process[key]), ""))
+
+
+
+        # count = 0
+        # for send_message in dict_to_process["send_msgs"]: # dict
+        #     iterMessage = QStandardItem(f"Message {count}")
+        #     CANmessage.child(1).appendRow(iterMessage)
+
+        #     signalDict = send_message["signals"]
+        #     count = count + 1
+        #     countSig = 0
+        #     for key in send_message.keys():
+        #         if not isinstance(send_message[key], list):
+        #             iterMessage.appendRow(self.make_row(key, str(send_message[key]), ""))
+        #             print(f"DEBUG: Adding {key} to tree from {str(send_message)}'s {type(send_message).__name__}")
+        #         else:
+        #             for sigElement in signalDict:
+        #                 signal = QStandardItem(f"Signal {countSig}")
+        #                 countSig = countSig + 1
+        #                 for insideElement in sigElement:
+        #                     signal.appendRow(self.make_row(str(insideElement), str(sigElement[insideElement]), ""))
+        #                     print(f"DEBUG: Adding {insideElement} to tree from {str(sigElement)}'s {type(sigElement).__name__}")
+        #                 iterMessage.appendRow(signal)
+                    
+        # # CANmessage.child(2).appendRow() # position for receive messages
+        
+        
 
 
 
@@ -259,12 +313,25 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
     
+
+        # initial table
+        # self.table_view = QTableView()
+        # self.layout.addWidget(self.table_view)
+
+        def keep_view():
+            self.tree_view.expandAll()
+            self.tree_view.setRootIsDecorated(False)
+            self.tree_view.setColumnWidth(0, 350)
+            self.tree_view.setColumnWidth(1, 200)
+            self.tree_view.setColumnWidth(2, 1000)
+            
         # initial tree
         self.tree_view = QTreeView()
         self.layout.addWidget(self.tree_view)
         self.model = CANTreeModel()
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
+        self.model.rowsInserted.connect(keep_view)
         self.tree_view.setRootIsDecorated(False)
         self.tree_view.setColumnWidth(0, 350)
         self.tree_view.setColumnWidth(1, 200)
