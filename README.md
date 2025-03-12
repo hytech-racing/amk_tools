@@ -5,7 +5,7 @@ This is a tool for editing CAN Messages.
 - Importing RAW/JSON CAN messages
 - Exporting RAW/JSON CAN messages
 - Editing values
-- Checks for invalid values
+- Checks for invalid values (outputs to console)
 
 ## WIP
 - Clearer descriptions
@@ -32,4 +32,4 @@ python ui.py
 # Usage Guide
 The user can build a CAN message from scratch, or go to File -> Import JSON or Import Raw and work from an existing message.
 
-The user can export the message by File -> Export JSON or Export Raw
+The user can export the message by File -> Export JSON or Export Raw (The default directory is the downloads folder).
