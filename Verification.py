@@ -1,10 +1,3 @@
-## Project Plannning:
-
-# Make a bunch of classes that represent the messages we can send
-# Specify object/functions to run checks on the attributes of each class
-# Message class structure:
-# Attributes list: stores tuple/object? that contains a name, value, and a checker Object???
-
 import json
 
 byte_size = 255
