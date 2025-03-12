@@ -1,6 +1,6 @@
-import sys
+import sys, os
 import json, json_gen
-from Verification import CANMessage, SendMessage, ReceiveMessage, Signal
+from Verification import CANMessage, SendMessage, ReceiveMessage, Signal, Verification
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
 from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
 from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
@@ -42,9 +42,9 @@ from CANStandardItem import CANStandardItem
 #         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
     
 class CANTreeModel(QStandardItemModel):
-    def __init__(self, data=None):
+    def __init__(self, message =None):
         super().__init__()
-        self.message = CANMessage(1, 2, 4)
+        self.message = message if message else CANMessage(1, 0, 0, 500)
         self.populateTree()
 
     # def make_row(self, name, value, description):
@@ -228,19 +228,57 @@ class MainWindow(QMainWindow):
 
     def importJsonFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import JSON File", "", "JSON Files (*.json)")
-        if filePath:
-            # Open the selected file and read its contents
-            with open(filePath, "r") as file:
-                json_data = json.load(file)
+        if not filePath:
+            print("No import path selected.")
+            return
+        
+        new_message = Verification.read_JSON(filePath) # returns a CANMessage
+        self.model = CANTreeModel(new_message) # resets tree with new CANMessage from file
+        self.tree_view.setModel(self.model)
+        self.tree_view.expandAll()
 
     def importRawFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import Raw File", "", "")
-        print(filePath)
-        json_gen.run(filePath) # creates JSON from raw at "testdata/data.json"
-        
-        # TODO potentially update test data path
-        with open("test_data/data.json", "r") as file:
-            json_data = json.load(file)
+        if not filePath:
+            print("No import path selected.")
+            return
+        json_gen.run(filePath) # creates JSON from raw at "test_data/data.json"
+
+        new_message = Verification.read_JSON("test_data/data.json") # returns a CANMessage
+        self.model = CANTreeModel(new_message)
+        self.tree_view.setModel(self.model)
+        self.tree_view.expandAll()
+
+    def exportJsonFile(self):
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        filePath, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export JSON File", 
+            os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
+            "JSON Files (*.json)"
+        )
+        if not filePath:
+            print("No export path selected.")
+            return
+
+        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
+
+    def exportRawFile(self):
+        # TODO Make this actually work, not the exact same as exportJsonFile lol
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        filePath, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export JSON File", 
+            os.path.join(download_path, "exported_CANMessage.json"),  # Default file path
+            "JSON Files (*.json)"
+        )
+        if not filePath:
+            print("No export path selected.")
+            return
+
+        Verification.write_JSON(filePath, Verification.read_JSON("test_data/data.json"))
 
     def initUI(self):
         self.setWindowTitle("AMK Tool: Message Editor")
@@ -257,11 +295,16 @@ class MainWindow(QMainWindow):
         importRawAction = QAction("Import RAW", self)
         importRawAction.triggered.connect(self.importRawFile)
 
-        exportAction = QAction("Export", self)
+        exportJsonAction = QAction("Export as JSON", self)
+        exportJsonAction.triggered.connect(self.exportJsonFile)
+        exportRawAction = QAction("Export as RAW", self)
+        exportRawAction.triggered.connect(self.exportRawFile)
+
 
         fileMenu.addAction(importJsonAction)
         fileMenu.addAction(importRawAction)
-        fileMenu.addAction(exportAction)
+        fileMenu.addAction(exportJsonAction)
+        fileMenu.addAction(exportRawAction)
 
 
         # initial ui
@@ -270,6 +313,7 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
     
+
         # initial table
         # self.table_view = QTableView()
         # self.layout.addWidget(self.table_view)
@@ -281,7 +325,6 @@ class MainWindow(QMainWindow):
             self.tree_view.setColumnWidth(1, 200)
             self.tree_view.setColumnWidth(2, 1000)
             
-
         # initial tree
         self.tree_view = QTreeView()
         self.layout.addWidget(self.tree_view)
@@ -293,12 +336,6 @@ class MainWindow(QMainWindow):
         self.tree_view.setColumnWidth(0, 350)
         self.tree_view.setColumnWidth(1, 200)
         self.tree_view.setColumnWidth(2, 1000)
-        # self.model = CANTableModel()
-        # self.table_view.setModel(self.model)
-        # self.table_view.setColumnWidth(0, 350)
-        # self.table_view.setColumnWidth(1, 200)
-        # self.table_view.setColumnWidth(2, 1000)
-
 
 # Run the application
 if __name__ == "__main__":
