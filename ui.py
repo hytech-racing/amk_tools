@@ -44,7 +44,6 @@ from CANStandardItem import CANStandardItem
 class CANTreeModel(QStandardItemModel):
     def __init__(self, data=None):
         super().__init__()
-        self.setHorizontalHeaderLabels(["Name", "Value", "Description"])
         self.message = CANMessage(1, 2, 4)
         self.populateTree()
 
@@ -57,13 +56,16 @@ class CANTreeModel(QStandardItemModel):
 
     def make_row(self, name, value, description, obj):
         """ Creates a row with Name, Value, and Description, bound to a specific object. """
-        child1_name = CANStandardItem(name, obj, name)  # Name column
-        child1_value = CANStandardItem(value, obj, name)  # Value column (editable)
+        child1_name = CANStandardItem(name, obj, name, self.populateTree)  # Name column
+        child1_value = CANStandardItem(value, obj, name, self.populateTree)  # Value column (editable)
         child1_desc = QStandardItem(description)  # Description column
 
         return [child1_name, child1_value, child1_desc]
     
     def populateTree(self):
+        self.clear()
+        self.setHorizontalHeaderLabels(["Name", "Value", "Description"])
+        print(self.parent)
         can_message = QStandardItem("CAN Message")
 
         self.appendRow(can_message)
@@ -272,12 +274,21 @@ class MainWindow(QMainWindow):
         # self.table_view = QTableView()
         # self.layout.addWidget(self.table_view)
 
+        def keep_view():
+            self.tree_view.expandAll()
+            self.tree_view.setRootIsDecorated(False)
+            self.tree_view.setColumnWidth(0, 350)
+            self.tree_view.setColumnWidth(1, 200)
+            self.tree_view.setColumnWidth(2, 1000)
+            
+
         # initial tree
         self.tree_view = QTreeView()
         self.layout.addWidget(self.tree_view)
         self.model = CANTreeModel()
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
+        self.model.rowsInserted.connect(keep_view)
         self.tree_view.setRootIsDecorated(False)
         self.tree_view.setColumnWidth(0, 350)
         self.tree_view.setColumnWidth(1, 200)
