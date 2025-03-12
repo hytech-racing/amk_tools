@@ -107,61 +107,122 @@ def write_CAN_msg(json_message_desc, file_out, leftover_byte_char = None, writin
             sig_count = sig_count + 1
 
     return leftover_byte
+def jsonToRaw (inpath, outpath):
+    # Read JSON from a file
+    with open(inpath, 'r') as f:
+        json_desc = json.load(f)
+        with open(outpath, 'w') as f_out:
+            # Safely access values and combine them
+            try:
+                message_config = json_desc["message_config"]
+                total_send = json_desc["total_send"]
 
-# Read JSON from a file
-with open('test_ser.json', 'r') as f:
-    json_desc = json.load(f)
-    with open('CAN_write.txt', 'w') as f_out:
-        # Safely access values and combine them
-        try:
-            message_config = json_desc["message_config"]
-            total_send = json_desc["total_send"]
+
+                ### writing send msgs
+                # Ensure the integers are within a byte range (0-255)
+                if 0 <= message_config <= 255 and 0 <= total_send <= 255:
+                    # Combine the values into a 2-byte word
+                    combined_word =  (total_send << 8)| (message_config)
+                    write_word_to_file(combined_word, f_out)
+
+                    msg_write_ind = 0
+                    leftover_byte = None
+                    while( msg_write_ind < total_send ):
+                        leftover_byte = write_CAN_msg(json_desc["send_msgs"][msg_write_ind], f_out, leftover_byte)
+                        msg_write_ind = msg_write_ind + 1
+                    
+
+                    ### writing recv msgs
+                    if (leftover_byte is None):
+                        total_recv_msgs = json_desc["total_recv_msgs"]
+
+                        leftover_byte = total_recv_msgs 
+                        recv_msg_ind = 0
+                        while( recv_msg_ind < total_recv_msgs):
+                            leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
+                            recv_msg_ind = recv_msg_ind + 1
+                    else:
+                        total_recv_msgs = json_desc["total_recv_msgs"]
+                        combine_bytes_and_write(leftover_byte, total_recv_msgs, f_out)
+                        leftover_byte = None # reset leftover byte
+                        recv_msg_ind = 0
+                        while( recv_msg_ind < total_recv_msgs):
+                            leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
+                            recv_msg_ind = recv_msg_ind + 1
+                    ### writing transmission rate and end byte / padding
+                    if(leftover_byte is None):
+                        transmission_rate_k_baud = json_desc["transmission_rate"]
+                        write_word_to_file(transmission_rate_k_baud, f_out)
+                        write_word_to_file(0, f_out)
+                    else:
+                        transmission_rate_k_baud_lsb = get_least_sig_val(json_desc["transmission_rate"])
+                        combine_bytes_and_write(leftover_byte, transmission_rate_k_baud_lsb, f_out) # test
+                        transmission_rate_k_baud_msb = get_most_sig_val(json_desc["transmission_rate"])
+                        combine_bytes_and_write(transmission_rate_k_baud_msb, 0, f_out) # test
+                else:
+                    print("Error: Both values must be within the range 0-255.")
+            except KeyError as e:
+                print(f"Error: Missing key in JSON data: {e}")
+            except ValueError as e:
+                print(f"Error: Invalid data in JSON: {e}")
+
+# ===================================
+# remnant
+# ===================================
+# # Read JSON from a file
+# with open('test_ser.json', 'r') as f:
+#     json_desc = json.load(f)
+#     with open('CAN_write.txt', 'w') as f_out:
+#         # Safely access values and combine them
+#         try:
+#             message_config = json_desc["message_config"]
+#             total_send = json_desc["total_send"]
 
 
-            ### writing send msgs
-            # Ensure the integers are within a byte range (0-255)
-            if 0 <= message_config <= 255 and 0 <= total_send <= 255:
-                # Combine the values into a 2-byte word
-                combined_word =  (total_send << 8)| (message_config)
-                write_word_to_file(combined_word, f_out)
+#             ### writing send msgs
+#             # Ensure the integers are within a byte range (0-255)
+#             if 0 <= message_config <= 255 and 0 <= total_send <= 255:
+#                 # Combine the values into a 2-byte word
+#                 combined_word =  (total_send << 8)| (message_config)
+#                 write_word_to_file(combined_word, f_out)
 
-                msg_write_ind = 0
-                leftover_byte = None
-                while( msg_write_ind < total_send ):
-                    leftover_byte = write_CAN_msg(json_desc["send_msgs"][msg_write_ind], f_out, leftover_byte)
-                    msg_write_ind = msg_write_ind + 1
+#                 msg_write_ind = 0
+#                 leftover_byte = None
+#                 while( msg_write_ind < total_send ):
+#                     leftover_byte = write_CAN_msg(json_desc["send_msgs"][msg_write_ind], f_out, leftover_byte)
+#                     msg_write_ind = msg_write_ind + 1
                 
 
-                ### writing recv msgs
-                if (leftover_byte is None):
-                    total_recv_msgs = json_desc["total_recv_msgs"]
+#                 ### writing recv msgs
+#                 if (leftover_byte is None):
+#                     total_recv_msgs = json_desc["total_recv_msgs"]
 
-                    leftover_byte = total_recv_msgs 
-                    recv_msg_ind = 0
-                    while( recv_msg_ind < total_recv_msgs):
-                        leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
-                        recv_msg_ind = recv_msg_ind + 1
-                else:
-                    total_recv_msgs = json_desc["total_recv_msgs"]
-                    combine_bytes_and_write(leftover_byte, total_recv_msgs, f_out)
-                    leftover_byte = None # reset leftover byte
-                    recv_msg_ind = 0
-                    while( recv_msg_ind < total_recv_msgs):
-                        leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
-                        recv_msg_ind = recv_msg_ind + 1
-                ### writing transmission rate and end byte / padding
-                if(leftover_byte is None):
-                    transmission_rate_k_baud = json_desc["transmission_rate"]
-                    write_word_to_file(transmission_rate_k_baud, f_out)
-                    write_word_to_file(0, f_out)
-                else:
-                    transmission_rate_k_baud_lsb = get_least_sig_val(json_desc["transmission_rate"])
-                    combine_bytes_and_write(leftover_byte, transmission_rate_k_baud_lsb)
-                    transmission_rate_k_baud_msb = get_most_sig_val(json_desc["transmission_rate"])
-                    combine_bytes_and_write(transmission_rate_k_baud_msb, 0)
-            else:
-                print("Error: Both values must be within the range 0-255.")
-        except KeyError as e:
-            print(f"Error: Missing key in JSON data: {e}")
-        except ValueError as e:
-            print(f"Error: Invalid data in JSON: {e}")
+#                     leftover_byte = total_recv_msgs 
+#                     recv_msg_ind = 0
+#                     while( recv_msg_ind < total_recv_msgs):
+#                         leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
+#                         recv_msg_ind = recv_msg_ind + 1
+#                 else:
+#                     total_recv_msgs = json_desc["total_recv_msgs"]
+#                     combine_bytes_and_write(leftover_byte, total_recv_msgs, f_out)
+#                     leftover_byte = None # reset leftover byte
+#                     recv_msg_ind = 0
+#                     while( recv_msg_ind < total_recv_msgs):
+#                         leftover_byte = write_CAN_msg(json_desc["receive_messages"][recv_msg_ind], f_out, leftover_byte, False)
+#                         recv_msg_ind = recv_msg_ind + 1
+#                 ### writing transmission rate and end byte / padding
+#                 if(leftover_byte is None):
+#                     transmission_rate_k_baud = json_desc["transmission_rate"]
+#                     write_word_to_file(transmission_rate_k_baud, f_out)
+#                     write_word_to_file(0, f_out)
+#                 else:
+#                     transmission_rate_k_baud_lsb = get_least_sig_val(json_desc["transmission_rate"])
+#                     combine_bytes_and_write(leftover_byte, transmission_rate_k_baud_lsb)
+#                     transmission_rate_k_baud_msb = get_most_sig_val(json_desc["transmission_rate"])
+#                     combine_bytes_and_write(transmission_rate_k_baud_msb, 0)
+#             else:
+#                 print("Error: Both values must be within the range 0-255.")
+#         except KeyError as e:
+#             print(f"Error: Missing key in JSON data: {e}")
+#         except ValueError as e:
+#             print(f"Error: Invalid data in JSON: {e}")
