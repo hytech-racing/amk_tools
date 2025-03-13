@@ -4,17 +4,6 @@ byte_size = 255
 two_byte_size = 65535
 
 class CANMessage:
-    name = [{"config_mode": "Message Mode Configuration"},
-            {"total_send": "Total Send Message Count"},
-            {"total_receive": "Total Receive Message Count"},
-            {"transmission_rate": "Transmission Rate"},
-            ]
-    desc = [{"config_mode": "The 'Free CAN message configuration' is activated with the value 1."},
-            {"total_send": "Maximum of 10 send messages."},
-            {"total_receive": "Maximum of 10 receive messages."},
-            {"transmission_rate": "Transmission rate in kBaud (thousands of symbol changes per second)"},
-            ]
-    
     # update methods:
     def update_config_mode(self, config_mode):
         if config_mode != 1:
@@ -72,17 +61,17 @@ class CANMessage:
 
             "total_send": {
                 "function": self.update_send_total,
-                "description": "do later"
+                "description": "Maximum of 10 send messages."
             },
 
             "total_recv_msgs": {
                 "function": self.update_receive_total,
-                "description": "sdf"
+                "description": "Maximum of 10 receive messages."
             },
 
             "transmission_rate": {
                 "function": self.update_transmission_rate,
-                "description": "tadf"
+                "description": "Transmission rate in kBaud (thousands of symbol changes per second)"
             }
         }
     
