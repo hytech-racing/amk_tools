@@ -135,6 +135,8 @@ class SendMessage:
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
+        if new_total < 0:
+            raise OverflowError("total_signals must not be negative...")
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal())
