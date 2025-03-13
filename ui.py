@@ -13,9 +13,13 @@ class CANTreeModel(QStandardItemModel):
         self.populateTree()
 
     def make_row(self, name, value, description, obj):
-        """ Creates a row with Name, Value, and Description, bound to a specific object. """
-        child1_name = CANStandardItem(name, obj, name, self.populateTree)  # Name column
-        child1_value = CANStandardItem(value, obj, name, self.populateTree)  # Value column (editable)
+        """
+        Creates a row with Name, Value, and Description, bound to a specific object.
+        Uses wrapper function for populateTree to save scroll position.
+        """
+        tree_update_func = getattr(self, 'tree_update_callback', self.populateTree)
+        child1_name = CANStandardItem(name, obj, name, tree_update_func)  # Name column
+        child1_value = CANStandardItem(value, obj, name, tree_update_func)  # Value column (editable)
         child1_desc = QStandardItem(description)  # Description column
 
         return [child1_name, child1_value, child1_desc]
@@ -23,7 +27,7 @@ class CANTreeModel(QStandardItemModel):
     def populateTree(self):
         self.clear()
         self.setHorizontalHeaderLabels(["Name", "Value", "Description"])
-        print(self.parent)
+        # print(self.parent)
         can_message = QStandardItem("CAN Message")
 
         self.appendRow(can_message)
@@ -90,6 +94,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.initUI()
 
+    def updateTreeWithScroll(self):
+        """
+        Wrapper method to update the tree model and reset the vertical scroll position to the same
+        position as before. This is a workaround to prevent the tree view from
+        jumping to the top whenever the model is updated.
+        """
+        scroll_pos = self.tree_view.verticalScrollBar().value()
+        self.model.populateTree()
+        self.tree_view.verticalScrollBar().setValue(scroll_pos)
+
     def importJsonFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import JSON File", "", "JSON Files (*.json)")
         if not filePath:
@@ -126,7 +140,6 @@ class MainWindow(QMainWindow):
             return
 
         Verification.write_JSON(filePath, self.model.message)
-        print(f"DEBUG: Exported CANMessage to {filePath}")
 
     def exportRawFile(self):
         download_path = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -141,13 +154,6 @@ class MainWindow(QMainWindow):
             return
         Verification.write_JSON("test_data/toRaw.json", self.model.message)
         gen_bytes.jsonToRaw("test_data/toRaw.json", filePath)
-
-    def resetView(self):
-        self.tree_view.expandAll()
-        self.tree_view.setRootIsDecorated(False)
-        self.tree_view.setColumnWidth(0, 350)
-        self.tree_view.setColumnWidth(1, 200)
-        self.tree_view.setColumnWidth(2, 1000)
 
     def initUI(self):
         self.setWindowTitle("AMK Tool: CAN Message Editor")
@@ -168,17 +174,10 @@ class MainWindow(QMainWindow):
         exportRawAction = QAction("Export as RAW", self)
         exportRawAction.triggered.connect(self.exportRawFile)
 
-        resetViewAction = QAction("Expand all rows", self)
-        resetViewAction.triggered.connect(self.resetView)
-
-
         fileMenu.addAction(importJsonAction)
         fileMenu.addAction(importRawAction)
         fileMenu.addAction(exportJsonAction)
         fileMenu.addAction(exportRawAction)
-        
-        menuBar.addAction(resetViewAction)
-
 
         # initial ui
         self.central_widget = QWidget()
@@ -197,6 +196,7 @@ class MainWindow(QMainWindow):
         self.tree_view = QTreeView()
         self.layout.addWidget(self.tree_view)
         self.model = CANTreeModel()
+        self.model.tree_update_callback = self.updateTreeWithScroll
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
         self.model.rowsInserted.connect(keep_view)
