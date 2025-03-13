@@ -1,4 +1,4 @@
-Various tools for AMK inverters/motors.
+Various tools for AMK inverters/motors:
 # AMK Tool: CAN Message Editor
 This is a tool for editing CAN Messages for the AMK inverter.
 
