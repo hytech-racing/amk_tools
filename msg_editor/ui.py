@@ -1,9 +1,9 @@
 import sys, os
 import json, json_gen, gen_bytes
 from Verification import CANMessage, SendMessage, ReceiveMessage, Signal, Verification
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableView, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
-from PyQt5.QtGui import QIcon, QColor, QBrush, QStandardItem, QStandardItemModel
-from PyQt5.QtCore import Qt, QSize, QAbstractTableModel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QVBoxLayout, QWidget, QAction, QMenuBar, QTreeView
+from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel
+from PyQt5.QtCore import Qt
 from CANStandardItem import CANStandardItem
 
 class CANTreeModel(QStandardItemModel):
@@ -89,6 +89,15 @@ class CANTreeModel(QStandardItemModel):
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
+
+def showError(title, message):
+    box = QMessageBox()
+    box.setIcon(QMessageBox.Critical)  # Error icon
+    box.setWindowTitle(title)
+    box.setText(message)
+    box.setStandardButtons(QMessageBox.Ok)
+    box.exec_()
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -112,13 +121,13 @@ class MainWindow(QMainWindow):
     def importJsonFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import JSON File", "", "JSON Files (*.json)")
         if not filePath:
-            print("No import path selected.")
+            showError("User Abort", "No import path selected.")
             return
         try:
             new_message = Verification.read_JSON(filePath) # returns a CANMessage
         except Exception as e:
-            print(e)
-            print("Couldn't read file. Was this in the right format? See data/testdata.json for example.")
+            showError("Import Error", f"An error occured: {e}\n\nCouldn't read file. Was this in the right format?\nSee data/testdata.json for example.")
+            return
         
         def keep_view():
             self.tree_view.expandAll()
@@ -136,13 +145,14 @@ class MainWindow(QMainWindow):
     def importRawFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import Raw File", "", "")
         if not filePath:
-            print("No import path selected.")
+            showError("User Abort", "No import path selected.")
             return
         try:
             json_gen.run(filePath) # creates JSON from raw at "data/data.json"
         except Exception as e:
-            print(e)
-            print("Couldn't read file. See data/testdataRaw for example.")
+            showError("Import Error", f"An error occured:\n{e}\n\nCouldn't read file. Was this in the right format?\nSee data/testdataRaw for example.")
+            return
+
 
         def keep_view():
                 self.tree_view.expandAll()
@@ -167,7 +177,7 @@ class MainWindow(QMainWindow):
             "JSON Files (*.json)"
         )
         if not filePath:
-            print("No export path selected.")
+            showError("User Abort", "No export path selected.")
             return
 
         Verification.write_JSON(filePath, self.model.message)
@@ -181,8 +191,9 @@ class MainWindow(QMainWindow):
             ""
         )
         if not filePath:
-            print("No export path selected.")
+            showError("User Abort", "No export path selected.")
             return
+        
         Verification.write_JSON("data/data.json", self.model.message)
         gen_bytes.jsonToRaw("data/data.json", filePath)
 
