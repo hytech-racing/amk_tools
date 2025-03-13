@@ -114,6 +114,11 @@ class MainWindow(QMainWindow):
         if not filePath:
             print("No import path selected.")
             return
+        try:
+            new_message = Verification.read_JSON(filePath) # returns a CANMessage
+        except Exception as e:
+            print(e)
+            print("Couldn't read file. Was this in the right format? See data/testdata.json for example.")
         
         def keep_view():
             self.tree_view.expandAll()
@@ -122,7 +127,6 @@ class MainWindow(QMainWindow):
             self.tree_view.setColumnWidth(1, 200)
             self.tree_view.setColumnWidth(2, 1000)
         
-        new_message = Verification.read_JSON(filePath) # returns a CANMessage
         self.model = CANTreeModel(new_message) # resets tree with new CANMessage from file
         self.model.tree_update_callback = self.updateTreeWithScroll
         self.model.rowsInserted.connect(keep_view)
@@ -137,7 +141,8 @@ class MainWindow(QMainWindow):
         try:
             json_gen.run(filePath) # creates JSON from raw at "data/data.json"
         except Exception as e:
-            print("Raw CAN message file not in correct format, see testdata/AMK_raw_CAN_userlist for example.")
+            print(e)
+            print("Couldn't read file. See data/testdataRaw for example.")
 
         def keep_view():
                 self.tree_view.expandAll()
@@ -178,8 +183,8 @@ class MainWindow(QMainWindow):
         if not filePath:
             print("No export path selected.")
             return
-        Verification.write_JSON("data/toRaw.json", self.model.message)
-        gen_bytes.jsonToRaw("data/toRaw.json", filePath)
+        Verification.write_JSON("data/data.json", self.model.message)
+        gen_bytes.jsonToRaw("data/data.json", filePath)
 
     def initUI(self):
         self.setWindowTitle("AMK Tool: CAN Message Editor")
