@@ -3,7 +3,7 @@ import json
 byte_size = 255
 two_byte_size = 65535
 
-with open("msg_editor/motor_parameters.json", "r") as file:
+with open("motor_parameters.json", "r") as file:
     motor_parameters = json.load(file)
 
 class CANMessage:
