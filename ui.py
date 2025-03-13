@@ -103,6 +103,12 @@ class MainWindow(QMainWindow):
         scroll_pos = self.tree_view.verticalScrollBar().value()
         self.model.populateTree()
         self.tree_view.verticalScrollBar().setValue(scroll_pos)
+        self.tree_view.expandAll()
+        self.tree_view.setRootIsDecorated(False)
+        self.tree_view.setColumnWidth(0, 350)
+        self.tree_view.setColumnWidth(1, 200)
+        self.tree_view.setColumnWidth(2, 1000)
+        print("called")
 
     def importJsonFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Import JSON File", "", "JSON Files (*.json)")
@@ -110,8 +116,17 @@ class MainWindow(QMainWindow):
             print("No import path selected.")
             return
         
+        def keep_view():
+            self.tree_view.expandAll()
+            self.tree_view.setRootIsDecorated(False)
+            self.tree_view.setColumnWidth(0, 350)
+            self.tree_view.setColumnWidth(1, 200)
+            self.tree_view.setColumnWidth(2, 1000)
+        
         new_message = Verification.read_JSON(filePath) # returns a CANMessage
         self.model = CANTreeModel(new_message) # resets tree with new CANMessage from file
+        self.model.tree_update_callback = self.updateTreeWithScroll
+        self.model.rowsInserted.connect(keep_view)
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
 
@@ -120,10 +135,22 @@ class MainWindow(QMainWindow):
         if not filePath:
             print("No import path selected.")
             return
-        json_gen.run(filePath) # creates JSON from raw at "test_data/data.json"
+        try:
+            json_gen.run(filePath) # creates JSON from raw at "test_data/data.json"
+        except Exception as e:
+            print("Raw CAN message file not in correct format, see testdata/AMK_raw_CAN_userlist for example.")
+
+        def keep_view():
+                self.tree_view.expandAll()
+                self.tree_view.setRootIsDecorated(False)
+                self.tree_view.setColumnWidth(0, 350)
+                self.tree_view.setColumnWidth(1, 200)
+                self.tree_view.setColumnWidth(2, 1000)
 
         new_message = Verification.read_JSON("test_data/data.json") # returns a CANMessage
         self.model = CANTreeModel(new_message)
+        self.model.tree_update_callback = self.updateTreeWithScroll
+        self.model.rowsInserted.connect(keep_view)
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
 
