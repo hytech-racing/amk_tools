@@ -1,5 +1,6 @@
+Various tools for AMK inverters/motors.
 # AMK Tool: CAN Message Editor
-This is a tool for editing CAN Messages.
+This is a tool for editing CAN Messages for the AMK inverter.
 
 ## Features
 - Importing RAW/JSON CAN messages
@@ -12,6 +13,7 @@ This is a tool for editing CAN Messages.
 - Friendlier UI
 - Easier installation
 - Autopopulation of certain values based on others
+- Bug fixes
 
 # Installation
 ## Prerequisites
@@ -20,9 +22,10 @@ Python 3.7+
 pip install PyQt5
 ```
 ## Cloning the Repository
-```
+```terminal
+cd (directory/of/your/choice)
 git clone https://github.com/hytech-racing/amk_tools.git
-cd amk_tools
+cd amk_tools/msg_editor
 ```
 ## Running the UI
 ```
