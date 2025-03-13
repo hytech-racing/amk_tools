@@ -36,3 +36,5 @@ python ui.py
 The user can build a CAN message from scratch, or go to File -> Import JSON or Import Raw and work from an existing message.
 
 The user can export the message by File -> Export JSON or Export Raw (The default directory is the downloads folder).
+
+There are example files in msg_editor/data that you can import.
