@@ -6,3 +6,4 @@ msg_editor/build
 msg_editor/dist
 msg_editor/MsgEditor.spec
 msg_editor/setup.iss
+msg_editor/MsgEditor_Installer.exe
