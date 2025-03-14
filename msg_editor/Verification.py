@@ -148,7 +148,7 @@ class SendMessage:
             raise OverflowError("total_signals must not be negative...")
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
-                self.signals.append(Signal(update_index_function=custom_update_function))
+                self.signals.append(Signal(custom_update_function))
         custom_update_function(100)
         self.total_signals = new_total
 
