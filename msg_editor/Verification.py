@@ -138,6 +138,8 @@ class SendMessage:
         def custom_update_function(index):
             start_bit = 0
             for i in range(len(self.signals)):
+                if (i >= self.total_signals):
+                    break
                 self.signals[i].update_start_bit(start_bit)
                 start_bit += self.signals[i].bit_length
             self.update_data_length(int(start_bit / 8))
@@ -146,11 +148,12 @@ class SendMessage:
             raise OverflowError("total_signals needs to fit within 1 byte...")
         if new_total < 0:
             raise OverflowError("total_signals must not be negative...")
+        self.total_signals = new_total
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal(update_index_function=custom_update_function))
         custom_update_function(100)
-        self.total_signals = new_total
+        
 
     def getDict(self):
         ret = {
@@ -220,17 +223,19 @@ class ReceiveMessage:
                 raise Exception("Cannot receive a 'R' only signal")
             start_bit = 0
             for i in range(len(self.signals)):
+                if (i >= self.total_signals):
+                    break
                 self.signals[i].update_start_bit(start_bit)
                 start_bit += self.signals[i].bit_length
             self.update_data_length(int(start_bit / 8))
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
+        self.total_signals = new_total
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal(update_index_function=custom_update_function))
         custom_update_function(100)
-        self.total_signals = new_total
 
     def getDict(self):
         ret = {
