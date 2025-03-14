@@ -1,3 +1,8 @@
 __pycache__/
 msg_editor/data/toRaw.json
 msg_editor/data/data.json
+msg_editor/build.bat
+msg_editor/build
+msg_editor/dist
+msg_editor/MsgEditor.spec
+msg_editor/setup.iss
