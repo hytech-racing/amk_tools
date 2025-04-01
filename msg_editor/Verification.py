@@ -3,7 +3,18 @@ import json
 byte_size = 255
 two_byte_size = 65535
 
-with open("motor_parameters.json", "r") as file:
+import sys
+import os
+import json
+
+if getattr(sys, 'frozen', False):
+    base_path = sys._MEIPASS  # Extracted temp folder
+else:
+    base_path = os.path.abspath(".")
+
+json_path = os.path.join(base_path, ".", "motor_parameters.json")
+
+with open(json_path, "r") as file:
     motor_parameters = json.load(file)
 
 class CANMessage:
