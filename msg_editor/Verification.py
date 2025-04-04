@@ -106,6 +106,7 @@ class CANMessage:
 
 class SendMessage:
     def __init__(self, CAN_ID=0, cycle_time=0, data_length=8, attr=0, total_signals=0, signals=[]):
+        self.total_signals = 0
         self.signals = signals
         self.update_CAN_ID(CAN_ID)
         self.update_data_length(data_length)
@@ -159,11 +160,18 @@ class SendMessage:
             raise OverflowError("total_signals needs to fit within 1 byte...")
         if new_total < 0:
             raise OverflowError("total_signals must not be negative...")
-        self.total_signals = new_total
+        
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal(update_index_function=custom_update_function))
-        custom_update_function(100)
+        old_total = self.total_signals
+        self.total_signals = new_total
+
+        try:
+            custom_update_function(100)
+        except Exception as e:
+            self.total_signals = old_total
+            raise(e)
         
 
     def getDict(self):
@@ -189,6 +197,7 @@ class SendMessage:
 
 class ReceiveMessage:
     def __init__(self, CAN_ID=0, telegram_failure_monitoring=0, data_length=8, total_signals=0, signals=[]):
+        self.total_signals = 0
         # Core CAN attributes
         self.signals = signals
         self.update_CAN_ID(CAN_ID)
@@ -242,11 +251,17 @@ class ReceiveMessage:
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
-        self.total_signals = new_total
         if len(self.signals) < new_total:
             for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal(update_index_function=custom_update_function))
-        custom_update_function(100)
+        old_total = self.total_signals
+        self.total_signals = new_total
+
+        try:
+            custom_update_function(100)
+        except Exception as e:
+            self.total_signals = old_total
+            raise(e)
 
     def getDict(self):
         ret = {
