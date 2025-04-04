@@ -6,35 +6,40 @@ This is a tool for editing CAN Messages for the AMK inverter.
 - Importing RAW/JSON CAN messages
 - Exporting RAW/JSON CAN messages
 - Editing values
-- Checks for invalid values (outputs to console)
+- Checks for invalid values
+- Displays Error and Warning Pop-ups
 
 ## WIP
-- Clearer descriptions
-- Friendlier UI
-- Easier installation
+- Drop-down selection for possible signal IDs
 - Autopopulation of certain values based on others
 - Bug fixes
+- Friendlier UI
+- Not having to run as admin
 
-# Installation
-## Prerequisites
+## Installation
+### Windows
+Go to [Releases](https://github.com/hytech-racing/amk_tools/releases) and follow the installation guide of the latest release.
+### Mac & Linux
+#### Prerequisites
 Python 3.7+
 ```
 pip install PyQt5
 ```
-## Cloning the Repository
+#### Cloning the Repository
 ```terminal
 cd (directory/of/your/choice)
 git clone https://github.com/hytech-racing/amk_tools.git
 cd amk_tools/msg_editor
 ```
-## Running the UI
+#### Running the UI
 ```
 python ui.py
 ```
 
-# Usage Guide
+##### Usage Guide
 The user can build a CAN message from scratch, or go to File -> Import JSON or Import Raw and work from an existing message.
 
 The user can export the message by File -> Export JSON or Export Raw (The default directory is the downloads folder).
 
 There are example files in msg_editor/data that you can import.
+

@@ -1,11 +1,9 @@
+import sys
+import os
 import json
 
 byte_size = 255
 two_byte_size = 65535
-
-import sys
-import os
-import json
 
 if getattr(sys, 'frozen', False):
     base_path = sys._MEIPASS  # Extracted temp folder
@@ -147,14 +145,6 @@ class SendMessage:
         self.data_length = data_length
         
     def update_total_signals(self, new_total):
-        def custom_update_function(index):
-            start_bit = 0
-            for i in range(len(self.signals)):
-                if (i >= self.total_signals):
-                    break
-                self.signals[i].update_start_bit(start_bit)
-                start_bit += self.signals[i].bit_length
-            self.update_data_length(int(start_bit / 8))
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
@@ -235,24 +225,13 @@ class ReceiveMessage:
         if data_length > 8 or data_length < 0:
             raise OverflowError("data_length needs to be within [0,8]...")
         self.data_length = data_length
-
         
     def update_total_signals(self, new_total):
-        def custom_update_function(index):
-            if motor_parameters[str(index)]["Access"] == "R":
-                raise Exception("Cannot receive a 'R' only signal")
-            start_bit = 0
-            for i in range(len(self.signals)):
-                if (i >= self.total_signals):
-                    break
-                self.signals[i].update_start_bit(start_bit)
-                start_bit += self.signals[i].bit_length
-            self.update_data_length(int(start_bit / 8))
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
         if len(self.signals) < new_total:
-            for i in range(new_total - len(self.signals)):
+            for i in range(new_total - len(self.signals
                 self.signals.append(Signal(update_index_function=custom_update_function))
         old_total = self.total_signals
         self.total_signals = new_total
@@ -291,20 +270,7 @@ class Signal:
     def update_index(self, index):
         if index > two_byte_size:
             raise OverflowError("Ensure signal index is less than two bytes...")
-        if not str(index) in motor_parameters:
-            raise Exception("Index signal not found...")
-        else:
-            key = str(index)
-            data_type = motor_parameters[key]["Data type"]
-            if data_type == "UNS16" or data_type == "SGN16":
-                self.update_bit_length(16)
-            elif data_type == "UNS32" or data_type == "SGN32":
-                self.update_bit_length(32)
-            else:
-                raise OverflowError("Unknown bit length")
         self.index = index                  # Index SERCOS or Special signal
-        self.update_index_function(index)
-        
     def update_bit_length(self, bit_length):
         if bit_length < 0:
             raise Exception("Data length cannot be negative...")
@@ -321,15 +287,13 @@ class Signal:
         self.start_bit = start_bit
 
 
-    def __init__(self, signal_type = 0, index = 100, bit_length = 16, message = 0, start_bit = 0, checker_functions = [], update_index_function = None):
+    def __init__(self, signal_type = 0, index = 0, bit_length = 0, message = 0, start_bit = 0, checker_functions = []):
         self.checkers = checker_functions   # Custom validations for the message
-        self.update_index_function = update_index_function
         self.update_signal_type(signal_type)
         self.update_index(index)
-        self.update_bit_length(bit_length) # Kind of useless
+        self.update_bit_length(bit_length)
         self.update_message(message)
-        self.update_start_bit(start_bit) # Kind of useless
-        
+        self.update_start_bit(start_bit)
         self.mappings = {
             "signal_type": {
                 "function": self.update_signal_type,
