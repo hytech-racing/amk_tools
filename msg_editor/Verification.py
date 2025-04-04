@@ -145,6 +145,14 @@ class SendMessage:
         self.data_length = data_length
         
     def update_total_signals(self, new_total):
+        def custom_update_function(index):
+            start_bit = 0
+            for i in range(len(self.signals)):
+                if (i >= self.total_signals):
+                    break
+                self.signals[i].update_start_bit(start_bit)
+                start_bit += self.signals[i].bit_length
+            self.update_data_length(int(start_bit / 8))
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
@@ -227,11 +235,21 @@ class ReceiveMessage:
         self.data_length = data_length
         
     def update_total_signals(self, new_total):
+        def custom_update_function(index):
+            if motor_parameters[str(index)]["Access"] == "R":
+                raise Exception("Cannot receive a 'R' only signal")
+            start_bit = 0
+            for i in range(len(self.signals)):
+                if (i >= self.total_signals):
+                    break
+                self.signals[i].update_start_bit(start_bit)
+                start_bit += self.signals[i].bit_length
+            self.update_data_length(int(start_bit / 8))
         byte_size = 8  # Assuming byte size to be 8 for this context
         if new_total > byte_size:
             raise OverflowError("total_signals needs to fit within 1 byte...")
         if len(self.signals) < new_total:
-            for i in range(new_total - len(self.signals
+            for i in range(new_total - len(self.signals)):
                 self.signals.append(Signal(update_index_function=custom_update_function))
         old_total = self.total_signals
         self.total_signals = new_total
