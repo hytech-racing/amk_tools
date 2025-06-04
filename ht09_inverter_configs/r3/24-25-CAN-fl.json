@@ -1,6 +1,6 @@
 {
   "message_config": 1,
-  "total_send": 5,
+  "total_send": 6,
   "send_msgs": [
     {
       "CAN_ID": 112,
@@ -144,6 +144,29 @@
           "sig_attr": 0
         }
       ]
+    },
+    {
+      "CAN_ID": 310,
+      "cycle_time": 10,
+      "data_length": 4,
+      "attr": 0,
+      "total_signals": 2,
+      "signals": [
+        {
+          "signal_type": 0,
+          "index": 33101,
+          "bit_length": 16,
+          "start_bit": 0,
+          "sig_attr": 0
+        },
+        {
+          "signal_type": 0,
+          "index": 33102,
+          "bit_length": 16,
+          "start_bit": 16,
+          "sig_attr": 0
+        }
+      ]
     }
   ],
   "total_recv_msgs": 3,
@@ -166,8 +189,8 @@
     {
       "CAN_ID": 151,
       "telegram_failure_monitoring": 50,
-      "data_length": 6,
-      "total_signals": 3,
+      "data_length": 8,
+      "total_signals": 4,
       "signals": [
         {
           "signal_type": 2,
@@ -188,6 +211,13 @@
           "index": 14,
           "bit_length": 16,
           "start_bit": 32,
+          "sig_attr": 2
+        },
+        {
+          "signal_type": 2,
+          "index": 17,
+          "bit_length": 16,
+          "start_bit": 48,
           "sig_attr": 2
         }
       ]
