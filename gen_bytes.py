@@ -1,4 +1,5 @@
 import json
+import sys 
 
 def get_least_sig_val(val):
     return val & 0xFF
@@ -109,9 +110,10 @@ def write_CAN_msg(json_message_desc, file_out, leftover_byte_char = None, writin
     return leftover_byte
 
 # Read JSON from a file
-with open('test_ser.json', 'r') as f:
+with open(sys.argv[1], 'r') as f:
     json_desc = json.load(f)
-    with open('CAN_write.txt', 'w') as f_out:
+    with open(sys.argv[1][:-5]+".txt", 'w') as f_out:
+    # with open('CAN_write.txt', 'w') as f_out:
         # Safely access values and combine them
         try:
             message_config = json_desc["message_config"]
@@ -156,9 +158,9 @@ with open('test_ser.json', 'r') as f:
                     write_word_to_file(0, f_out)
                 else:
                     transmission_rate_k_baud_lsb = get_least_sig_val(json_desc["transmission_rate"])
-                    combine_bytes_and_write(leftover_byte, transmission_rate_k_baud_lsb)
+                    combine_bytes_and_write(leftover_byte, transmission_rate_k_baud_lsb, f_out)
                     transmission_rate_k_baud_msb = get_most_sig_val(json_desc["transmission_rate"])
-                    combine_bytes_and_write(transmission_rate_k_baud_msb, 0)
+                    combine_bytes_and_write(transmission_rate_k_baud_msb, 0, f_out)
             else:
                 print("Error: Both values must be within the range 0-255.")
         except KeyError as e:

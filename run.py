@@ -23,11 +23,12 @@ def main():
     
     inverter_on_msg = setpoint.encode({'negative_torque_limit': 0, 'positive_torque_limit': 0, 'speed_setpoint_rpm': 0, 'remove_error': 0, 'driver_enable': 1, 'hv_enable': 1, 'inverter_enable': 1})
 
-    rpm_msg = setpoint.encode({'negative_torque_limit': -2, 'positive_torque_limit': 2, 'speed_setpoint_rpm': 100, 'remove_error': 0, 'driver_enable': 1, 'hv_enable': 1, 'inverter_enable': 1})
+    rpm_msg = setpoint.encode({'negative_torque_limit': -5, 'positive_torque_limit': 5, 'speed_setpoint_rpm': 2000, 'remove_error': 0, 'driver_enable': 1, 'hv_enable': 1, 'inverter_enable': 1})
     current_rpm = 0
     # torq_msg = setpoint.encode({'negative_torque_limit': -2, 'positive_torque_limit': 2, 'speed_setpoint_rpm': 100, 'remove_error': 0, 'driver_enable': 1, 'hv_enable': 1, 'inverter_enable': 1})
 
     error_reset = False
+    initialized = False
     while(1):
         
         if(not error_reset):
@@ -48,7 +49,7 @@ def main():
                 bus1.send(msg)
             except can.CanError:
                 print("Message NOT sent!  Please verify can0 is working first")
-        elif((not inverter_hv_on) and (inverter_ready) and (not inverter_enabled)):
+        elif((not inverter_hv_on) and (inverter_ready) and (not inverter_enabled) and (not initialized)):
             print(inverter_hv_on)
             print(inverter_ready)
             print(inverter_enabled)
@@ -58,7 +59,7 @@ def main():
                 bus1.send(msg)
             except can.CanError:
                 print("Message NOT sent!  Please verify can0 is working first")
-        elif(inverter_hv_on and inverter_ready and (not inverter_enabled) ):
+        elif(inverter_hv_on and inverter_ready and (not inverter_enabled) and (not initialized)):
             print("inverter ready and hv on but inverter not enabled")
             try:
                 
@@ -66,7 +67,7 @@ def main():
                 bus1.send(msg)
             except can.CanError:
                 print("Message NOT sent!  Please verify can0 is working first")
-        elif((not inverter_hv_on) and (not inverter_ready) and (not inverter_enabled)):
+        elif((not inverter_hv_on) and (not inverter_ready) and (not inverter_enabled) and (not initialized)):
             print("first msg")
             try:
                 
@@ -76,7 +77,7 @@ def main():
                 print("Message NOT sent!  Please verify can0 is working first")
 
         
-        rcvd_message = bus1.recv(timeout=0.1)
+        rcvd_message = bus1.recv(timeout=0.01)
         if(rcvd_message):
             try:
                 
@@ -96,7 +97,7 @@ def main():
             except Exception as e:
                 print(f"Error decoding message: {e}")
             
-        time.sleep(0.02)
+        time.sleep(0.014)
         
 
 if __name__ == "__main__":

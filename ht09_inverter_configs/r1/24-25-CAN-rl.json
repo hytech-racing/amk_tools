@@ -1,0 +1,226 @@
+{
+    "message_config": 1,
+    "total_send": 5,
+    "send_msgs": [
+      {
+        "CAN_ID": 128,
+        "cycle_time": 20,
+        "data_length": 8,
+        "attr": 0,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 2, 
+            "index": 3,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 0,
+            "index": 32836,
+            "bit_length": 16,
+            "start_bit": 16,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 2,
+            "index": 21,
+            "bit_length": 32,
+            "start_bit": 32,
+            "sig_attr": 0
+          }
+        ]
+      },
+      {
+        "CAN_ID": 129,
+        "cycle_time": 20,
+        "data_length": 6,
+        "attr": 0,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 0,
+            "index": 33117,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 0,
+            "index": 33116,
+            "bit_length": 16,
+            "start_bit": 16,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 0,
+            "index": 34215,
+            "bit_length": 16,
+            "start_bit": 32,
+            "sig_attr": 2
+          }
+        ]
+      },
+      {
+        "CAN_ID": 130,
+        "cycle_time": 5,
+        "data_length": 8,
+        "attr": 0,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 0,
+            "index": 33100,
+            "bit_length": 32,
+            "start_bit": 0,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 2,
+            "index": 19,
+            "bit_length": 16,
+            "start_bit": 32,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 2,
+            "index": 5,
+            "bit_length": 16,
+            "start_bit": 48,
+            "sig_attr": 2
+          }
+        ]
+      },
+      {
+        "CAN_ID": 131,
+        "cycle_time": 5,
+        "data_length": 8,
+        "attr": 0,
+        "total_signals": 2,
+        "signals": [
+          {
+            "signal_type": 0,
+            "index": 33171,
+            "bit_length": 32,
+            "start_bit": 0,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 0,
+            "index": 33172,
+            "bit_length": 32,
+            "start_bit": 32,
+            "sig_attr": 2
+          }
+        ]
+      },
+      {
+        "CAN_ID": 132,
+        "cycle_time": 20,
+        "data_length": 6,
+        "attr": 0,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 0,
+            "index": 100,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 0,
+            "index": 101,
+            "bit_length": 16,
+            "start_bit": 16,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 0,
+            "index": 102,
+            "bit_length": 16,
+            "start_bit": 32,
+            "sig_attr": 0
+          }
+        ]
+      }
+    ],
+    "total_recv_msgs": 3,
+    "receive_messages": [
+      {
+        "CAN_ID": 146,
+        "telegram_failure_monitoring": 50,
+        "data_length": 2,
+        "total_signals": 1,
+        "signals": [
+          {
+            "signal_type": 2,
+            "index": 4,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 0
+          }
+        ]
+      },
+      {
+        "CAN_ID": 153,
+        "telegram_failure_monitoring": 50,
+        "data_length": 6,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 2,
+            "index": 6,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 2,
+            "index": 13,
+            "bit_length": 16,
+            "start_bit": 16,
+            "sig_attr": 2
+          },
+          {
+            "signal_type": 2,
+            "index": 14,
+            "bit_length": 16,
+            "start_bit": 32,
+            "sig_attr": 2
+          }
+        ]
+      },
+      {
+        "CAN_ID": 261,
+        "telegram_failure_monitoring": 0,
+        "data_length": 6,
+        "total_signals": 3,
+        "signals": [
+          {
+            "signal_type": 0,
+            "index": 100,
+            "bit_length": 16,
+            "start_bit": 0,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 0,
+            "index": 101,
+            "bit_length": 16,
+            "start_bit": 16,
+            "sig_attr": 0
+          },
+          {
+            "signal_type": 0,
+            "index": 102,
+            "bit_length": 16,
+            "start_bit": 32,
+            "sig_attr": 0
+          }
+        ]
+      }
+    ],
+    "transmission_rate": 500
+  }

@@ -1,5 +1,5 @@
 import json
-
+import sys
 
 def get_least_sig_val(val):
     return val & 0xFF
@@ -139,11 +139,12 @@ def parse_recv_message(cur_can_desc_file, leftover_byte_arg = None):
         
         return send_msg, leftover_byte
 
-CAN_desc = open("CAN_write.txt", "r")
+CAN_desc = open(sys.argv[1], "r")
+# CAN_desc = open("current_1_29_25_7_22_pm", "r")
 # CAN_desc = open("test_data/AMK_raw_CAN_userlist", "r")
 
 total_send_and_message_config_word = int(CAN_desc.readline(), 16)
-
+print("total_send_and_message_config_word", total_send_and_message_config_word)
 description_json = {}
 description_json["message_config"] = total_send_and_message_config_word & 0xFF
 
@@ -172,12 +173,12 @@ if(leftover_byte is None):
         current_recv_msg_ind = current_recv_msg_ind + 1
 
 else:
-
+    print(leftover_byte)
     description_json["total_recv_msgs"] = leftover_byte
     current_recv_msg_ind = 0
     description_json["receive_messages"] = []
     while(current_recv_msg_ind < description_json["total_recv_msgs"]):
-        recv_msg, leftover_byte = parse_recv_message(CAN_desc, leftover_byte)
+        recv_msg, leftover_byte = parse_recv_message(CAN_desc)
         description_json["receive_messages"].append(recv_msg)
         current_recv_msg_ind = current_recv_msg_ind + 1
 
@@ -190,7 +191,9 @@ else:
 
 json_formatted_str = json.dumps(description_json, indent=2)
 
-print(json_formatted_str)
+with open(sys.argv[1][:-4]+".json", "w") as file:
+    file.write(json_formatted_str)
+# print(json_formatted_str)
 
 
 
