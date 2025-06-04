@@ -1,0 +1,1 @@
+`signal_type`: 2 = special signal, 0 = sercos parameter
